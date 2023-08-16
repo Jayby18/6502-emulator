@@ -27,25 +27,33 @@ impl CPU {
 
 struct Bus {
     cpu: CPU,
-    ram: Vec<u8>,
+    ram: [u8; 64 * 1024],
 }
 
 impl Bus {
-    fn new(cpu: CPU, ram_size: usize) -> Self {
+    fn new(cpu: CPU) -> Self {
         return Bus {
             cpu,
-            ram: vec![0; ram_size],
+            ram: [u8; 64 * 1024],
         };
     }
 
+    // Write data to addr in RAM
     fn write(&self, addr: u16, data: u8) {
         if addr >= 0x0000 && addr <= 0xFFFF {
-            self.ram[addr] = data;
-        }        
+            self.ram[addr as usize] = data;
+        } else {
+            panic!("Memory access out of bounds. RAM can only access between 0x0000 and 0xFFFF.")
+        }   
     }
 
-    fn read(addr: u16, read_only: bool) -> u8 {
-        return 0;
+    // Read from RAM at addr
+    fn read(&self, addr: u16, read_only: bool) -> u8 {
+        if addr >= 0x0000 && addr <= 0xFFFF {
+            return self.ram[addr as usize];
+        } else {
+            panic!("Memory access out of bounds. RAM can only access between 0x0000 and 0xFFFF.")
+        }
     }
 }
 
