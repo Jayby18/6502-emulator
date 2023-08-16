@@ -20,7 +20,7 @@ impl CPU {
     //     }
     // }
 
-    fn reset(&self) {
+    fn reset(&mut self) {
         self.PC = 0xFFFC;
     }
 }
@@ -34,12 +34,12 @@ impl Bus {
     fn new(cpu: CPU) -> Self {
         return Bus {
             cpu,
-            ram: [u8; 64 * 1024],
+            ram: [0; 64 * 1024],
         };
     }
 
     // Write data to addr in RAM
-    fn write(&self, addr: u16, data: u8) {
+    fn write(&mut self, addr: u16, data: u8) {
         if addr >= 0x0000 && addr <= 0xFFFF {
             self.ram[addr as usize] = data;
         } else {
