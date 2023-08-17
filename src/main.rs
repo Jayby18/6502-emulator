@@ -16,6 +16,7 @@ struct CPU<'a> {
     opcode: u8,     // current opcode
     cycles: u8,     // cycles left to run
     bus: Option<&'a Bus<'a>>,
+    lookup: Vec<&'a Instruction<'a>>,
 }
 
 impl<'a> CPU<'a> {
@@ -35,7 +36,7 @@ impl<'a> CPU<'a> {
     //     };
     // }
 
-    fn empty() -> Self {
+    fn empty(&self) -> Self {
         return CPU {
             a: 0x00,
             x: 0x00,
@@ -49,6 +50,9 @@ impl<'a> CPU<'a> {
             opcode: 0x00,
             cycles: 0,
             bus: None,
+            lookup: vec![   // TODO: create entire lookup table
+                &Instruction { name: "BRK", operate: Some(self.BRK), addr_mode: &IMM, cycles: 7 }
+            ]
         };
     }
 
@@ -167,12 +171,12 @@ impl<'a> CPU<'a> {
             self.pc += 1;
 
             // TODO: Get Starting number of cycles
-            // self.cycles = lookup[self.opcode].cycles;
+            self.cycles = self.lookup[self.opcode as usize].cycles;
 
-            // let additional_cycle1: u8 = (this->*lookup[opcode].addrmode)();
-            // let additional_cycle2: u8 = (this->*lookup[opcode].operate)();
+            let additional_cycle1: u8 = (self.lookup[self.opcode as usize].addr_mode.unwrap())();
+            let additional_cycle2: u8 = (self.lookup[self.opcode as usize].operate.unwrap())();
 
-            // self.cycles += (additional_cycle1 & additional_cycle2);
+            self.cycles += additional_cycle1 & additional_cycle2;
         }
 
         self.cycles -= 1;
@@ -243,7 +247,7 @@ impl<'a> Bus<'a> {
 }
 
 struct Instruction<'a> {
-    name: String,
+    name: &'a str,
     operate: Option<&'a fn()>,
     addr_mode: Option<&'a fn()>,   // 
     cycles: u8,
@@ -252,7 +256,7 @@ struct Instruction<'a> {
 impl<'a> Instruction<'a> {
     fn new(name: &str) -> Self {
         Instruction {
-            name: String::from(name),
+            name,
             operate: None,
             addr_mode: None,
             cycles: 0,
