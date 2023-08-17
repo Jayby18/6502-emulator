@@ -242,14 +242,14 @@ impl<'a> Bus<'a> {
     }
 }
 
-struct Instruction {
+struct Instruction<'a> {
     name: String,
-    operate: Option<&fn()>,
-    addr_mode: Option<&fn()>,   // 
+    operate: Option<&'a fn()>,
+    addr_mode: Option<&'a fn()>,   // 
     cycles: u8,
 }
 
-impl Instruction {
+impl<'a> Instruction<'a> {
     fn new(name: &str) -> Self {
         Instruction {
             name: String::from(name),
