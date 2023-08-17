@@ -2,7 +2,7 @@
 // mod Bus;
 // mod opcodes;
 
-struct CPU {
+struct CPU<'a> {
     // byte: u8, word: u16
     a: u8,  // accumulator
     x: u8,  // X register
@@ -15,10 +15,10 @@ struct CPU {
     addr_rel: u16,  // memory address to read from (relative)
     opcode: u8,     // current opcode
     cycles: u8,     // cycles left to run
-    bus: Option<Bus>,
+    bus: Option<&'a Bus<'a>>,
 }
 
-impl CPU {
+impl<'a> CPU<'a> {
     // fn new(a: u8, x: u8, y: u8, sp: u8, pc: u16, sr: u8, fetched: u8, addr_abs: u16, addr_rel: u16, opcode: u8, cycles: u8) -> Self {
     //     return CPU {
     //         a,
@@ -52,7 +52,7 @@ impl CPU {
         };
     }
 
-    fn connect_bus(&mut self, bus: Bus) {
+    fn connect_bus(&mut self, bus: &'a Bus<'a>) {
         self.bus = Some(bus);
     }
 
@@ -210,13 +210,15 @@ enum Flags {
     N = 0b1000_0000,    // negative
 }
 
-struct Bus {
+struct Bus<'a> {
+    cpu: Option<&'a CPU<'a>>,
     ram: [u8; 64 * 1024],
 }
 
-impl Bus {
-    fn new() -> Self {
+impl<'a> Bus<'a> {
+    fn new(cpu: &'a CPU<'a>) -> Self {
         Bus {
+            cpu: Some(cpu),
             ram: [0; 64 * 1024],
         }
     }
@@ -260,8 +262,8 @@ impl Instruction {
 
 fn main() {
     println!("Hello world");
-    let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::empty();
-    cpu.connect_bus(bus);
+    let mut bus: Bus = Bus::new(&cpu);
+    cpu.connect_bus(&bus);
     cpu.reset();
 }
