@@ -62,12 +62,12 @@ impl<'a> CPU<'a> {
 
     // Write & read bus
 
-    fn write(&self, bus: &mut Bus, addr: u16, data: u8) {
-        bus.write(addr, data);
+    fn write(&self, addr: u16, data: u8) {
+        self.bus.unwrap().write(addr, data);
     }
 
-    fn read(&self, bus: &Bus, addr: u16) -> u8 {
-        bus.read(addr, false)
+    fn read(&self, addr: u16) -> u8 {
+        return self.bus.unwrap().read(addr, false);
     }
 
     // Flags
@@ -77,17 +77,33 @@ impl<'a> CPU<'a> {
     }
 
     fn set_flag(&mut self, f: Flags, v: bool) {
-
+        if v {
+            self.sr |= f;
+        } else {
+            self.sr &= !f;
+        }
     }
 
     // Addressing modes
-    fn IMP() -> u8 {}
-    fn ZP0() -> u8 {}
+    fn IMP(&self) -> u8 {
+        self.fetched = self.a;
+        return 0;
+    }
+    fn ZP0(&self) -> u8 {
+        self.addr_abs = self.read(self.pc);
+        self.pc += 1;
+        self.addr_abs &= 0x00FF;
+        return 0;
+    }
     fn ZPY() -> u8 {}
     fn ABS() -> u8 {}
     fn ABY() -> u8 {}
     fn IZX() -> u8 {}
-    fn IMM() -> u8 {}
+    fn IMM(&self) -> u8 {
+        self.addr_abs = self.pc;    // pc++ in example, does this work?
+        self.pc += 1;
+        return 0;
+    }
     fn ZPX() -> u8 {}
     fn REL() -> u8 {}
     fn ABX() -> u8 {}
