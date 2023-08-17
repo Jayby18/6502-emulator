@@ -1,27 +1,57 @@
+use std::rc::Rc;
+
 struct CPU {
     // byte: u8, word: u16
-    A: u8,  // accumulator
-    X: u8,  // X register
-    Y: u8,  // Y register
-    SP: u8,   // stack pointer
-    PC: u16,   // program counter
-    SR: u8,   // status register
+    a: u8,  // accumulator
+    x: u8,  // X register
+    y: u8,  // Y register
+    sp: u8,   // stack pointer
+    pc: u16,   // program counter
+    sr: u8,   // status register
+    fetched: u8,
+    addr_abs: u16,
+    addr_rel: u16,
+    opcode: u8,
+    cycles: u8,
+    bus: Option<Rc<Bus>>,
 }
 
 impl CPU {
-    fn new(A: u8, X: u8, Y: u8, SP: u8, PC: u16, SR: u8) -> Self {
+    // fn new(a: u8, x: u8, y: u8, sp: u8, pc: u16, sr: u8, fetched: u8, addr_abs: u16, addr_rel: u16, opcode: u8, cycles: u8) -> Self {
+    //     return CPU {
+    //         a,
+    //         x,
+    //         y,
+    //         sp,
+    //         pc,
+    //         sr,
+    //         fetched,
+    //         addr_abs,
+    //         addr_rel,
+    //         opcode,
+    //         cycles,
+    //     };
+    // }
+
+    fn empty() -> Self {
         return CPU {
-            A,
-            X,
-            Y,
-            SP,
-            PC,
-            SR,
+            a: 0x00,
+            x: 0x00,
+            y: 0x00,
+            sp: 0x00,
+            pc: 0x0000,
+            sr: 0x00,
+            fetched: 0x00,
+            addr_abs: 0x0000,
+            addr_rel: 0x00,
+            opcode: 0x00,
+            cycles: 0,
+            bus: None,
         };
     }
 
-    fn connect_bus(n: &Bus) {
-        // 
+    fn connect_bus(&mut self, bus:Rc<Bus> ) {
+        self.bus = Some(bus);
     }
 
     // Write & read bus
@@ -55,7 +85,7 @@ impl CPU {
 
     // Reset
     fn reset(&mut self) {
-        self.PC = 0xFFFC;
+        self.pc = 0xFFFC;
     }
 
     // Interrupt request (irq)
@@ -66,12 +96,6 @@ impl CPU {
     fn fetch() -> u8 {
         0
     }
-
-    let mut fetched: u8 = 0x00;
-    let mut addr_abs: u16 = 0x000;
-    let mut addr_rel: u16 = 0x00;
-    let mut opcode: u8 = 0x00;
-    let mut cycles: u8 = 0;
 }
 
 enum Flags {
@@ -86,16 +110,16 @@ enum Flags {
 }
 
 struct Bus {
-    cpu: CPU,
+    cpu: Option<Rc<CPU>>,
     ram: [u8; 64 * 1024],
 }
 
 impl Bus {
-    fn new(cpu: CPU) -> Self {
-        return Bus {
+    fn new(cpu: Option<Rc<CPU>>) -> Rc<Self> {
+        Rc::new(Bus {
             cpu,
             ram: [0; 64 * 1024],
-        };
+        })
     }
 
     // Write data to addr in RAM
@@ -119,7 +143,8 @@ impl Bus {
 
 fn main() {
     println!("Hello world");
-    let mut cpu: CPU = CPU::new(0x00, 0x00, 0x00, 0x00, 0x0000, 0x00);
+    let mut cpu: CPU = CPU::empty();
     cpu.reset();
-    let mut bus: Bus = Bus::new(cpu);
+    let bus: Bus = Bus::new();
+    cpu.connect_bus(Some(&bus));
 }
