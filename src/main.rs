@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 struct CPU {
     // byte: u8, word: u16
     a: u8,  // accumulator
@@ -13,7 +11,7 @@ struct CPU {
     addr_rel: u16,
     opcode: u8,
     cycles: u8,
-    bus: Option<Rc<Bus>>,
+    bus: Option<Bus>,
 }
 
 impl CPU {
@@ -50,7 +48,7 @@ impl CPU {
         };
     }
 
-    fn connect_bus(&mut self, bus:Rc<Bus> ) {
+    fn connect_bus(&mut self, bus: Bus) {
         self.bus = Some(bus);
     }
 
@@ -67,7 +65,7 @@ impl CPU {
     // Flags
 
     fn get_flag(f: Flags) -> u8 {
-
+        0
     }
 
     fn set_flag(f: Flags, v: bool) {
@@ -110,16 +108,14 @@ enum Flags {
 }
 
 struct Bus {
-    cpu: Option<Rc<CPU>>,
     ram: [u8; 64 * 1024],
 }
 
 impl Bus {
-    fn new(cpu: Option<Rc<CPU>>) -> Rc<Self> {
-        Rc::new(Bus {
-            cpu,
+    fn new() -> Self {
+        Bus {
             ram: [0; 64 * 1024],
-        })
+        }
     }
 
     // Write data to addr in RAM
@@ -143,8 +139,8 @@ impl Bus {
 
 fn main() {
     println!("Hello world");
-    let mut cpu: CPU = CPU::empty();
-    cpu.reset();
     let bus: Bus = Bus::new();
-    cpu.connect_bus(Some(&bus));
+    let mut cpu: CPU = CPU::empty();
+    cpu.connect_bus(bus);
+    cpu.reset();
 }
