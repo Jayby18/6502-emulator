@@ -51,7 +51,7 @@ impl<'a> CPU<'a> {
             cycles: 0,
             bus: None,
             lookup: vec![   // TODO: create entire lookup table
-                &Instruction { name: "BRK", operate: Some(&Self::BRK), addr_mode: &Self::IMM, cycles: 7 }
+                &Instruction { name: "BRK", operate: Some(&Self::BRK), addr_mode: Some(&Self::IMM), cycles: 7 }, &Instruction { name: "ORA", operate: Some(&Self::ORA), addr_mode: Some(&Self::IZX), cycles: 6 }
             ]
         };
     }
@@ -126,7 +126,7 @@ impl<'a> CPU<'a> {
         self.pc += 1;
 
         self.addr_abs = (hi << 8) | lo;
-        self.addr_abs += <u8 as Into<u16>>::intro(self.x);
+        self.addr_abs += <u8 as Into<u16>>::into(self.x);
 
         if (self.addr_abs & 0xFF00) != (hi << 8) {
             return 1;
@@ -152,7 +152,6 @@ impl<'a> CPU<'a> {
         return 0;
     }
     fn REL() -> u8 { 0 }
-
     fn IND(&self) -> u8 {
         let ptr_lo: u16 = self.read(self.pc).into();
         self.pc += 1;
@@ -165,9 +164,8 @@ impl<'a> CPU<'a> {
 
         return 0;
     }
-
     fn IZX() -> u8 {
-
+        0
     }
     fn IZY() -> u8 { 0 }
 
@@ -290,12 +288,6 @@ enum Flags {
     U = 0b0010_0000,    // unused
     V = 0b0100_0000,    // overflow
     N = 0b1000_0000,    // negative
-}
-
-impl BitOrAssign for Flags {
-    fn big_or_assign() {
-
-    }
 }
 
 struct Bus<'a> {
