@@ -36,7 +36,7 @@ impl<'a> CPU<'a> {
     //     };
     // }
 
-    fn empty(&self) -> Self {
+    fn empty() -> Self {
         return CPU {
             a: 0x00,
             x: 0x00,
@@ -51,7 +51,7 @@ impl<'a> CPU<'a> {
             cycles: 0,
             bus: None,
             lookup: vec![   // TODO: create entire lookup table
-                &Instruction { name: "BRK", operate: Some(self.BRK), addr_mode: &IMM, cycles: 7 }
+                &Instruction { name: "BRK", operate: Some(&Self::BRK), addr_mode: &Self::IMM, cycles: 7 }
             ]
         };
     }
@@ -90,100 +90,162 @@ impl<'a> CPU<'a> {
         return 0;
     }
     fn ZP0(&self) -> u8 {
-        self.addr_abs = self.read(self.pc);
+        self.addr_abs = self.read(self.pc).into();
         self.pc += 1;
         self.addr_abs &= 0x00FF;
         return 0;
     }
-    fn ZPY() -> u8 {}
-    fn ABS() -> u8 {}
-    fn ABY() -> u8 {}
-    fn IZX() -> u8 {}
+    fn ABS(&self) -> u8 {
+        let lo: u16 = self.read(self.pc).into();
+        self.pc += 1;
+        let hi: u16 = self.read(self.pc).into();
+        self.pc += 1;
+
+        self.addr_abs = (hi << 8) | lo;
+        return 0;
+    }
+    fn ABX(&self) -> u8 {
+        let lo: u16 = self.read(self.pc).into();
+        self.pc += 1;
+        let hi: u16 = self.read(self.pc).into();
+        self.pc += 1;
+
+        self.addr_abs = (hi << 8) | lo;
+        self.addr_abs += <u8 as Into<u16>>::into(self.x);
+
+        if (self.addr_abs & 0xFF00) != (hi << 8) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    fn ABY(&self) -> u8 {
+        let lo: u16 = self.read(self.pc).into();
+        self.pc += 1;
+        let hi: u16 = self.read(self.pc).into();
+        self.pc += 1;
+
+        self.addr_abs = (hi << 8) | lo;
+        self.addr_abs += <u8 as Into<u16>>::intro(self.x);
+
+        if (self.addr_abs & 0xFF00) != (hi << 8) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
     fn IMM(&self) -> u8 {
         self.addr_abs = self.pc;    // pc++ in example, does this work?
         self.pc += 1;
         return 0;
     }
-    fn ZPX() -> u8 {}
-    fn REL() -> u8 {}
-    fn ABX() -> u8 {}
-    fn IND() -> u8 {}
-    fn IZY() -> u8 {}
+    fn ZPX(&self) -> u8 {
+        self.addr_abs = (self.read(self.pc) + self.x).into();
+        self.pc += 1;
+        self.addr_abs &= 0x00FF;
+        return 0;
+    }
+    fn ZPY(&self) -> u8 {
+        self.addr_abs = (self.read(self.pc) + self.y).into();
+        self.pc += 1;
+        self.addr_abs &= 0x00FF;
+        return 0;
+    }
+    fn REL() -> u8 { 0 }
+
+    fn IND(&self) -> u8 {
+        let ptr_lo: u16 = self.read(self.pc).into();
+        self.pc += 1;
+        let ptr_hi: u16 = self.read(self.pc).into();
+        self.pc += 1;
+
+        let ptr: u16 = (ptr_hi << 8) | ptr_lo;
+    
+        self.addr_abs = ((self.read(ptr + 1) << 8) | self.read(ptr + 0)).into();
+
+        return 0;
+    }
+
+    fn IZX() -> u8 {
+
+    }
+    fn IZY() -> u8 { 0 }
 
     // Opcodes
-    fn ADC() -> u8 {}
-    fn AND() -> u8 {}
-    fn ASL() -> u8 {}
-    fn BBR() -> u8 {}
-    fn BBS() -> u8 {}
-    fn BCC() -> u8 {}
-    fn BCS() -> u8 {}
-    fn BEQ() -> u8 {}
-    fn BIT() -> u8 {}
-    fn BMI() -> u8 {}
-    fn BNE() -> u8 {}
-    fn BPL() -> u8 {}
-    fn BRA() -> u8 {}
-    fn BVC() -> u8 {}
-    fn BVS() -> u8 {}
-    fn CLC() -> u8 {}
-    fn CLD() -> u8 {}
-    fn CLI() -> u8 {}
-    fn CLV() -> u8 {}
-    fn CMP() -> u8 {}
-    fn CPX() -> u8 {}
-    fn CPY() -> u8 {}
-    fn DEC() -> u8 {}
-    fn DEX() -> u8 {}
-    fn EOR() -> u8 {}
-    fn INC() -> u8 {}
-    fn INX() -> u8 {}
-    fn INY() -> u8 {}
-    fn JMP() -> u8 {}
-    fn JSR() -> u8 {}
-    fn LDA() -> u8 {}
-    fn LDX() -> u8 {}
-    fn LDY() -> u8 {}
-    fn LSR() -> u8 {}
-    fn NOP() -> u8 {}
-    fn ORA() -> u8 {}
-    fn PHA() -> u8 {}
-    fn PHP() -> u8 {}
-    fn PHX() -> u8 {}
-    fn PHY() -> u8 {}
-    fn PLA() -> u8 {}
-    fn PLP() -> u8 {}
-    fn PLX() -> u8 {}
-    fn PLY() -> u8 {}
-    fn RMB() -> u8 {}
-    fn ROL() -> u8 {}
-    fn ROR() -> u8 {}
-    fn RTI() -> u8 {}
-    fn RTS() -> u8 {}
-    fn SBC() -> u8 {}
-    fn SEC() -> u8 {}
-    fn SED() -> u8 {}
-    fn SEI() -> u8 {}
-    fn SMB() -> u8 {}
-    fn STA() -> u8 {}
-    fn STP() -> u8 {}
-    fn STX() -> u8 {}
-    fn STY() -> u8 {}
-    fn STZ() -> u8 {}
-    fn TAX() -> u8 {}
-    fn TAY() -> u8 {}
-    fn TRB() -> u8 {}
-    fn TSB() -> u8 {}
-    fn TXA() -> u8 {}
-    fn TXS() -> u8 {}
-    fn TYA() -> u8 {}
-    fn WAI() -> u8 {}
-    fn XXX() -> u8 {}
+    fn ADC() -> u8 { 0 }
+    fn AND() -> u8 { 0 }
+    fn ASL() -> u8 { 0 }
+    fn BBR() -> u8 { 0 }
+    fn BBS() -> u8 { 0 }
+    fn BCC() -> u8 { 0 }
+    fn BCS() -> u8 { 0 }
+    fn BEQ() -> u8 { 0 }
+    fn BIT() -> u8 { 0 }
+    fn BMI() -> u8 { 0 }
+    fn BNE() -> u8 { 0 }
+    fn BPL() -> u8 { 0 }
+    fn BRA() -> u8 { 0 }
+    fn BRK(&self) -> u8 { 0 }
+    fn BVC() -> u8 { 0 }
+    fn BVS() -> u8 { 0 }
+    fn CLC() -> u8 { 0 }
+    fn CLD() -> u8 { 0 }
+    fn CLI() -> u8 { 0 }
+    fn CLV() -> u8 { 0 }
+    fn CMP() -> u8 { 0 }
+    fn CPX() -> u8 { 0 }
+    fn CPY() -> u8 { 0 }
+    fn DEC() -> u8 { 0 }
+    fn DEX() -> u8 { 0 }
+    fn EOR() -> u8 { 0 }
+    fn INC() -> u8 { 0 }
+    fn INX() -> u8 { 0 }
+    fn INY() -> u8 { 0 }
+    fn JMP() -> u8 { 0 }
+    fn JSR() -> u8 { 0 }
+    fn LDA() -> u8 { 0 }
+    fn LDX() -> u8 { 0 }
+    fn LDY() -> u8 { 0 }
+    fn LSR() -> u8 { 0 }
+    fn NOP() -> u8 { 0 }
+    fn ORA() -> u8 { 0 }
+    fn PHA() -> u8 { 0 }
+    fn PHP() -> u8 { 0 }
+    fn PHX() -> u8 { 0 }
+    fn PHY() -> u8 { 0 }
+    fn PLA() -> u8 { 0 }
+    fn PLP() -> u8 { 0 }
+    fn PLX() -> u8 { 0 }
+    fn PLY() -> u8 { 0 }
+    fn RMB() -> u8 { 0 }
+    fn ROL() -> u8 { 0 }
+    fn ROR() -> u8 { 0 }
+    fn RTI() -> u8 { 0 }
+    fn RTS() -> u8 { 0 }
+    fn SBC() -> u8 { 0 }
+    fn SEC() -> u8 { 0 }
+    fn SED() -> u8 { 0 }
+    fn SEI() -> u8 { 0 }
+    fn SMB() -> u8 { 0 }
+    fn STA() -> u8 { 0 }
+    fn STP() -> u8 { 0 }
+    fn STX() -> u8 { 0 }
+    fn STY() -> u8 { 0 }
+    fn STZ() -> u8 { 0 }
+    fn TAX() -> u8 { 0 }
+    fn TAY() -> u8 { 0 }
+    fn TRB() -> u8 { 0 }
+    fn TSB() -> u8 { 0 }
+    fn TXA() -> u8 { 0 }
+    fn TXS() -> u8 { 0 }
+    fn TYA() -> u8 { 0 }
+    fn WAI() -> u8 { 0 }
+    fn XXX() -> u8 { 0 }
 
     // Clock
     fn clock(&mut self) {
         if self.cycles == 0 {
-            self.opcode = self.read(&self.bus.as_ref().unwrap(), self.pc);
+            self.opcode = self.read(self.pc);
             self.pc += 1;
 
             // TODO: Get Starting number of cycles
@@ -228,6 +290,12 @@ enum Flags {
     U = 0b0010_0000,    // unused
     V = 0b0100_0000,    // overflow
     N = 0b1000_0000,    // negative
+}
+
+impl BitOrAssign for Flags {
+    fn big_or_assign() {
+
+    }
 }
 
 struct Bus<'a> {
