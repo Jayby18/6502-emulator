@@ -77,9 +77,13 @@ impl<'a> CPU<'a> {
     }
 
     fn set_flag(&mut self, f: Flags, v: bool) {
+        // TODO: what is v again?
         if v {
+            // set flags using bitwise OR
+            // if current flag is 0110 and you pass 0001, it becomes 0111
             self.sr |= f;
         } else {
+            // set flags using
             self.sr &= !f;
         }
     }
@@ -194,21 +198,102 @@ impl<'a> CPU<'a> {
     fn CPX() -> u8 { 0 }
     fn CPY() -> u8 { 0 }
     fn DEC() -> u8 { 0 }
-    fn DEX() -> u8 { 0 }
+    // TODO: set zero flag when result is 0, negative flag when negative
+    fn DEX(&self) -> u8 {
+        self.x -= 1;
+        if self.x == 0 {
+            self.set_flag(Flags::Z, true);
+            // TODO: v true or false?
+        }
+        return 0;
+    }
+    fn DEY(&self) -> u8 {
+        self.y -= 1;
+        return 0;
+    }
     fn EOR() -> u8 { 0 }
+
+    // Increment value at memory location
     fn INC() -> u8 { 0 }
-    fn INX() -> u8 { 0 }
-    fn INY() -> u8 { 0 }
-    fn JMP() -> u8 { 0 }
+
+    // Increment the X register
+    fn INX(&self) -> u8 {
+        self.x += 1;
+        self.set_flag(Flags::Z, self.x == 0x00);
+        self.set_flag(Flags::N, (self.x & 0x80) ==  0x80);
+        return 0;
+    }
+
+    // Increment the Y register
+    fn INY(&self) -> u8 {
+        self.y += 1;
+        self.set_flag(Flags::Z, self.y == 0x80);
+        self.set_flag(Flags::N, (self.y & 0x80) == 0x80);
+        return 0;
+    }
+
+    // Jump to location
+    fn JMP(&self) -> u8 {
+        self.pc = self.addr_abs;
+        return 0;
+    }
+
+    // Jump to subroutine (pushing pc to stack before jump so the program can return)
     fn JSR() -> u8 { 0 }
-    fn LDA() -> u8 { 0 }
-    fn LDX() -> u8 { 0 }
-    fn LDY() -> u8 { 0 }
+
+    // Load the accumulator
+    fn LDA(&self) -> u8 {
+        self.fetch();
+        self.a = self.fetched;
+        self.set_flag(Flags::Z, self.a == 0x00);
+        self.set_flag(Flags::N, (self.a & 0x80) == 0x80);
+        return 1;
+    }
+
+    // Load the X register
+    fn LDX(&self) -> u8 {
+        self.fetch();
+        self.x = self.fetched;
+        self.set_flag(Flags::Z, self.x == 0x00);
+        self.set_flag(Flags::N, (self.x & 0x80) == 0x80);
+        return 1;
+    }
+
+    // Load the Y register
+    fn LDY(&self, value: u8) -> u8 {
+        self.fetch();
+        self.y = self.fetched;
+        self.set_flag(Flags::Z, self.y == 0x00);
+        self.set_flag(Flags::N, (self.y & 0x80) == 0x80);
+        return 1;
+    }
     fn LSR() -> u8 { 0 }
     fn NOP() -> u8 { 0 }
-    fn ORA() -> u8 { 0 }
-    fn PHA() -> u8 { 0 }
-    fn PHP() -> u8 { 0 }
+
+    // Bitwise OR
+    fn ORA(&self) -> u8 {
+        self.fetch();
+        self.a |= self.fetched;
+        self.set_flag(Flags::Z, self.a == 0x00);
+        self.set_flag(Flags::N, (self.a & 0x80) == 0x80);
+        return 1;
+    }
+
+    // Push accumulator to stack
+    fn PHA(&self) -> u8 {
+        self.write(0x0100 + (self.sp as u16), self.a);
+        self.sp -= 1;
+        return 0;
+    }
+
+    // Push status register to stack
+    fn PHP(&self) -> u8 {
+        self.write(0x0100 + (self.sp as u16), self.sr | Flags::B | Flags::U);
+        self.set_flag(Flags::B, false);
+        self.set_flag(Flags::U, false);
+        self.sp -= 1;
+        return 0;
+    }
     fn PHX() -> u8 { 0 }
     fn PHY() -> u8 { 0 }
     fn PLA() -> u8 { 0 }
@@ -225,19 +310,60 @@ impl<'a> CPU<'a> {
     fn SED() -> u8 { 0 }
     fn SEI() -> u8 { 0 }
     fn SMB() -> u8 { 0 }
-    fn STA() -> u8 { 0 }
+
+    // Store accumulator at address
+    fn STA(&self) -> u8 {
+        self.write(self.addr_abs, self.a);
+        return 0;
+    }
     fn STP() -> u8 { 0 }
     fn STX() -> u8 { 0 }
     fn STY() -> u8 { 0 }
     fn STZ() -> u8 { 0 }
-    fn TAX() -> u8 { 0 }
-    fn TAY() -> u8 { 0 }
+
+    // TODO: set Z and N flags in transfer functions
+    // Transfer accumulator to X register
+    fn TAX(&self) -> u8 {
+        self.x = self.a;
+        return 0;
+    }
+    
+    // Transfer accumulator to Y register
+    fn TAY(&self) -> u8 {
+        self.y = self.a;
+        return 0;
+    }
+
     fn TRB() -> u8 { 0 }
+
+    // Transfer stack pointer to X register
+    fn TSX(&self) -> u8 {
+        self.x = self.sp;
+        return 0;
+    }
+
     fn TSB() -> u8 { 0 }
-    fn TXA() -> u8 { 0 }
-    fn TXS() -> u8 { 0 }
-    fn TYA() -> u8 { 0 }
+
+    // Transfer X register to accumulator
+    fn TXA(&self) -> u8 {
+        self.a = self.x;
+        return 0;
+    }
+
+    // Transfer X register to stack pointer
+    fn TXS(&self) -> u8 {
+        self.sp = self.x;
+        return 0;
+    }
+
+    // Transfer Y register to accumulator
+    fn TYA(&self) -> u8 {
+        self.a = self.y;
+        return 0;
+    }
     fn WAI() -> u8 { 0 }
+
+    // When an illegal opcode is passed, XXX() is run
     fn XXX() -> u8 { 0 }
 
     // Clock
@@ -259,22 +385,22 @@ impl<'a> CPU<'a> {
     }
 
     // Reset
-    fn reset(&mut self) {
+    fn reset(&self) {
         self.pc = 0xFFFC;
     }
 
     // Interrupt request (irq)
-    fn irq(&mut self) {
+    fn irq(&self) {
 
     }
 
     // Not maskeable interrupt (nmi)
-    fn nmi(&mut self) {
+    fn nmi(&self) {
 
     }
 
     // Fetch data
-    fn fetch(&mut self) -> u8 {
+    fn fetch(&self) -> u8 {
         0
     }
 }
@@ -283,7 +409,7 @@ enum Flags {
     C = 0b0000_0001,    // carry
     Z = 0b0000_0010,    // zero
     I = 0b0000_0100,    // disable interrupt
-    D = 0b0000_1000,    // decimal
+    D = 0b0000_1000,    // decimal  (unused for now)
     B = 0b0001_0000,    // break
     U = 0b0010_0000,    // unused
     V = 0b0100_0000,    // overflow
