@@ -37,7 +37,7 @@ impl<'a> CPU<'a> {
     // }
 
     fn empty() -> Self {
-        return CPU {
+        let cpu = CPU {
             a: 0x00,
             x: 0x00,
             y: 0x00,
@@ -51,9 +51,12 @@ impl<'a> CPU<'a> {
             cycles: 0,
             bus: None,
             lookup: vec![   // TODO: create entire lookup table
-                &Instruction { name: "BRK", operate: Some(&Self::BRK), addr_mode: Some(&Self::IMM), cycles: 7 }, &Instruction { name: "ORA", operate: Some(&Self::ORA), addr_mode: Some(&Self::IZX), cycles: 6 }
+                &Instruction { name: "BRK", operate: (|| Self::BRK(&cpu)), addr_mode: Some(&Self::IMM), cycles: 7 },
+                &Instruction { name: "ORA", operate: &Self::ORA, addr_mode: Some(&Self::IZX), cycles: 6 },
             ]
         };
+
+        return cpu;
     }
 
     fn connect_bus(&mut self, bus: &'a Bus<'a>) {
@@ -327,7 +330,7 @@ impl<'a> CPU<'a> {
         self.x = self.a;
         return 0;
     }
-    
+
     // Transfer accumulator to Y register
     fn TAY(&self) -> u8 {
         self.y = self.a;
@@ -399,7 +402,7 @@ impl<'a> CPU<'a> {
 
     }
 
-    // Fetch data
+    // TODO: Fetch data
     fn fetch(&self) -> u8 {
         0
     }
@@ -450,8 +453,12 @@ impl<'a> Bus<'a> {
 
 struct Instruction<'a> {
     name: &'a str,
-    operate: Option<&'a fn()>,
-    addr_mode: Option<&'a fn()>,   // 
+    // operate: Option<&'a fn()>,
+    // operate: Box<dyn Fn() + 'a>,
+    operate: dyn Fn(),
+    // addr_mode: Option<&'a fn()>,
+    // addr_mode: Box<dyn Fn() + 'a>,
+    addr_mode: dyn Fn(),
     cycles: u8,
 }
 
