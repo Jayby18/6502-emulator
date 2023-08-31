@@ -84,7 +84,7 @@ impl CPU {
     }
     // Reset
     pub fn reset(&mut self) {
-        println!("Resetting. (PC: {0:2X})", self.pc);
+        println!("Resetting. (PC: {:02X})", self.pc);
         self.pc = 0xFFFC;
 
         // Reset all registers (except program counter)
@@ -110,14 +110,16 @@ impl CPU {
         loop {
             let opcode = self.read(self.pc);
             println!("\nNew clock cycle.");
-            println!("PC: {0:2X}", self.pc);
-            println!("OP: {0:2X}", opcode);
+            println!("PC: {}", self.pc);
+            println!("OP: {}", opcode);
             self.pc += 1;
 
             match opcode {
                 // 0x00 => self.BRK(),
                 0x00 => { return; },
-                0xA9 => self.LDA(),
+                0xA5 => self.LDA(AddressingMode::ZP0),
+                0xA9 => self.LDA(AddressingMode::IMM),
+                0xAD => self.LDA(AddressingMode::ABS),
                 _ => self.XXX(),
             }
         }
@@ -149,28 +151,76 @@ enum AddressingMode {
     ABS,
     ABX,
     ABY,
+    IND,
     IDX,
     IDY,
-    IND,
     REL,
-    NON,
 }
 
 impl CPU {
-    fn get_address(&self, mode: AddressingMode) -> u16 {
+    fn get_address(&mut self, mode: AddressingMode) -> u16 {
         match mode {
-            AddressingMode::IMM => self.pc,
-            AddressingMode::IMP => panic!("not supported"),
-            AddressingMode::ZP0 => self.read(self.pc) as u16,
-            AddressingMode::ZPX
-            AddressingMode::ZPY
-            AddressingMode::ABS => 
-            AddressingMode::ABX
-            AddressingMode::ABY
-            AddressingMode::IND
-            AddressingMode::IDX
-            AddressingMode::IDY
-            AddressingMode::REL
+            AddressingMode::IMM => {
+                let addr = self.pc;
+                self.pc += 1;
+                return addr;
+            },
+            AddressingMode::IMP => {
+                panic!("not supported");
+            },
+            AddressingMode::ZP0 => {
+                self.pc += 1;
+                let addr = return self.read(self.pc) as u16;
+                self.pc += 1;
+                return addr;
+            },
+            AddressingMode::ZPX => {
+                let addr = self.read(self.pc).wrapping_add(self.x) as u16;
+                self.pc += 1;
+                return addr;
+            },
+            AddressingMode::ZPY => {
+                let addr = self.read(self.pc).wrapping_add(self.y) as u16;
+                self.pc += 1;
+                return addr;
+            },
+            AddressingMode::ABS => {
+                let addr = self.read_u16(self.pc);
+                self.pc += 2;
+                return addr;
+            },
+            AddressingMode::ABX => {
+                let addr = self.read_u16(self.pc).wrapping_add(self.x as u16);
+                self.pc += 2;
+                return addr;
+            },
+            AddressingMode::ABY => {
+                let addr = self.read_u16(self.pc).wrapping_add(self.y as u16);
+                self.pc += 2;
+                return addr;
+            },
+            AddressingMode::IND => todo!(),
+            AddressingMode::IDX => {
+                let base = self.read(self.pc);
+
+                let ptr: u8 = (base as u8).wrapping_add(self.x);
+                let lo = self.read(ptr as u16);
+                let hi = self.read(ptr.wrapping_add(1) as u16);
+
+                self.pc += 2;
+                return (hi as u16) << 8 | (lo as u16);
+            },
+            AddressingMode::IDY => {
+                let base = self.read(self.pc);
+
+                let ptr: u8 = (base as u8).wrapping_add(self.y);
+                let lo = self.read(ptr as u16);
+                let hi = self.read(ptr.wrapping_add(1) as u16);
+
+                self.pc += 2;
+                return (hi as u16) << 8 | (lo as u16);
+            },
+            AddressingMode::REL => todo!(),
         }
     }
 }
@@ -242,11 +292,10 @@ impl CPU {
     fn JSR(&mut self) {}
 
     // Load the accumulator
-    fn LDA(&mut self) {
-        // self.fetch();
-        // self.a = self.fetched;
+    fn LDA(&mut self, mode: AddressingMode) {
+        let addr = self.get_address(mode);
 
-
+        self.a = self.read(addr);
 
         // Set zero and negative flags, depending on operand
         self.set_flag(Flags::Z, self.a == 0x00);
@@ -362,6 +411,7 @@ impl CPU {
     }
 }
 
+// Flags
 pub enum Flags {
     C = 0b0000_0001,    // carry
     Z = 0b0000_0010,    // zero
