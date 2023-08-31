@@ -42,7 +42,15 @@ impl CPU {
     }
 
     pub fn read(&mut self, addr: u16) -> u8 {
-        return self.bus.read(addr, false);
+        return self.bus.read(addr);
+    }
+
+    pub fn write_u16(&mut self, addr: u16, data: u16) {
+        self.bus.write_u16(addr, data);
+    }
+
+    pub fn read_u16(&mut self, addr: u16) -> u16 {
+        return self.bus.read_u16(addr);
     }
 
     // Flags
@@ -74,35 +82,28 @@ impl CPU {
     pub fn get_status(&self) -> u8 {
         return self.sr;
     }
-
-    // Clock
-    // fn clock(&mut self) {
-    //     if self.cycles == 0 {
-    //         self.opcode = self.read(self.pc);
-    //         self.pc += 1;
-
-    //         // TODO: Get Starting number of cycles
-    //         self.cycles = self.lookup[self.opcode as usize].cycles;
-
-    //         let additional_cycle1: u8 = (self.lookup[self.opcode as usize].addr_mode.unwrap())();
-    //         let additional_cycle2: u8 = (self.lookup[self.opcode as usize].operate.unwrap())();
-
-    //         self.cycles += additional_cycle1 & additional_cycle2;
-    //     }
-
-    //     self.cycles -= 1;
-    // }
-
     // Reset
     pub fn reset(&mut self) {
         println!("Resetting. (PC: {0:2X})", self.pc);
         self.pc = 0xFFFC;
+
+        // Reset all registers (except program counter)
+        self.a = 0;
+        self.x = 0;
+        self.y = 0;
+        self.sp = 0;
+        self.sr = 0;
+        self.fetched = 0;
+        self.addr_abs = 0;
+        self.addr_rel = 0;
+        self.opcode = 0;
+        self.cycles = 0;
     }
 
     // Clock
     pub fn clock(&mut self) {
         if self.pc == 0xFFFC {
-            let program_start: u16 = u16::from(self.read(self.pc)) << 8 + u16::from(self.read(self.pc + 1));
+            let program_start: u16 = self.read_u16(self.pc);
             self.pc = program_start;
         }
 
@@ -139,90 +140,39 @@ impl CPU {
 }
 
 // Addressing modes
+enum AddressingMode {
+    IMM,
+    IMP,
+    ZP0,
+    ZPX,
+    ZPY,
+    ABS,
+    ABX,
+    ABY,
+    IDX,
+    IDY,
+    IND,
+    REL,
+    NON,
+}
+
 impl CPU {
-    fn IMP(&mut self) -> u8 {
-        self.fetched = self.a;
-        return 0;
-    }
-    fn ZP0(&mut self) -> u8 {
-        self.addr_abs = self.read(self.pc).into();
-        self.pc += 1;
-        self.addr_abs &= 0x00FF;
-        return 0;
-    }
-    fn ABS(&mut self) -> u8 {
-        let lo: u16 = self.read(self.pc).into();
-        self.pc += 1;
-        let hi: u16 = self.read(self.pc).into();
-        self.pc += 1;
-
-        self.addr_abs = (hi << 8) | lo;
-        return 0;
-    }
-    fn ABX(&mut self) -> u8 {
-        let lo: u16 = self.read(self.pc).into();
-        self.pc += 1;
-        let hi: u16 = self.read(self.pc).into();
-        self.pc += 1;
-
-        self.addr_abs = (hi << 8) | lo;
-        self.addr_abs += <u8 as Into<u16>>::into(self.x);
-
-        if (self.addr_abs & 0xFF00) != (hi << 8) {
-            return 1;
-        } else {
-            return 0;
+    fn get_address(&self, mode: AddressingMode) -> u16 {
+        match mode {
+            AddressingMode::IMM => self.pc,
+            AddressingMode::IMP => panic!("not supported"),
+            AddressingMode::ZP0 => self.read(self.pc) as u16,
+            AddressingMode::ZPX
+            AddressingMode::ZPY
+            AddressingMode::ABS => 
+            AddressingMode::ABX
+            AddressingMode::ABY
+            AddressingMode::IND
+            AddressingMode::IDX
+            AddressingMode::IDY
+            AddressingMode::REL
         }
     }
-    fn ABY(&mut self) -> u8 {
-        let lo: u16 = self.read(self.pc).into();
-        self.pc += 1;
-        let hi: u16 = self.read(self.pc).into();
-        self.pc += 1;
-
-        self.addr_abs = (hi << 8) | lo;
-        self.addr_abs += <u8 as Into<u16>>::into(self.x);
-
-        if (self.addr_abs & 0xFF00) != (hi << 8) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-    fn IMM(&mut self) -> u8 {
-        self.addr_abs = self.pc;    // pc++ in example, does this work?
-        self.pc += 1;
-        return 0;
-    }
-    fn ZPX(&mut self) -> u8 {
-        self.addr_abs = (self.read(self.pc) + self.x).into();
-        self.pc += 1;
-        self.addr_abs &= 0x00FF;
-        return 0;
-    }
-    fn ZPY(&mut self) -> u8 {
-        self.addr_abs = (self.read(self.pc) + self.y).into();
-        self.pc += 1;
-        self.addr_abs &= 0x00FF;
-        return 0;
-    }
-    fn REL() -> u8 { 0 }
-    // fn IND(&mut self) -> u8 {
-    //     let ptr_lo: u16 = self.read(self.pc).into();
-    //     self.pc += 1;
-    //     let ptr_hi: u16 = self.read(self.pc).into();
-    //     self.pc += 1;
-
-    //     let ptr: u16 = (ptr_hi << 8) | ptr_lo;
-    
-    //     self.addr_abs = ((self.read(ptr + 1) << 8) | self.read(ptr + 0)).into();
-
-    //     return 0;
-    // }
-    fn IZX() -> u8 {
-        0
-    }
-    fn IZY() -> u8 { 0 }
 }
 
 // Instructions
@@ -296,12 +246,7 @@ impl CPU {
         // self.fetch();
         // self.a = self.fetched;
 
-        // Immediate addressing for now
-        let operand = self.read(self.pc);
-        self.pc += 1;
 
-        println!("LDA operand: {0:2X}", operand);
-        self.a = operand;
 
         // Set zero and negative flags, depending on operand
         self.set_flag(Flags::Z, self.a == 0x00);

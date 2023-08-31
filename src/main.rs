@@ -28,7 +28,8 @@ mod test {
             cpu.write(addr + (i as u16), program[i]);
         }
     
-        // Point reset instruction to program at 0x0600 
+        // Point reset instruction to program at 0x0600
+        // TODO: flip endianness
         cpu.write(0xFFFC, 0x06);
         cpu.write(0xFFFD, 0x00);
     
