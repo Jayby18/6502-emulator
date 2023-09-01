@@ -8,11 +8,7 @@ pub struct CPU {
     sp: u8,         // stack pointer
     pc: u16,        // program counter
     sr: u8,         // status register
-    fetched: u8,    // data that has been fetched by fetch()
-    addr_abs: u16,  // memory address to read from (absolute)
-    addr_rel: u16,  // memory address to read from (relative)
     opcode: u8,     // current opcode
-    cycles: u8,     // cycles left to run
     bus: Bus,      // memory bus
 }
 
@@ -25,11 +21,7 @@ impl CPU {
             sp: 0x00,
             pc: 0x0000,
             sr: 0x00,
-            fetched: 0x00,
-            addr_abs: 0x0000,
-            addr_rel: 0x00,
             opcode: 0x00,
-            cycles: 0,
             bus,
         };
 
@@ -93,11 +85,7 @@ impl CPU {
         self.y = 0;
         self.sp = 0;
         self.sr = 0;
-        self.fetched = 0;
-        self.addr_abs = 0;
-        self.addr_rel = 0;
         self.opcode = 0;
-        self.cycles = 0;
     }
 
     // Clock
@@ -127,6 +115,11 @@ impl CPU {
                 0x80 => self.NOP(AddressingMode::IMM),
                 0x90 => self.BCC(AddressingMode::REL),
                 0xA0 => self.LDY(AddressingMode::IMM), 0xA1 => self.LDA(AddressingMode::ZPX), 0xA2 => self.LDX(AddressingMode::IMM), 0xA4 => self.LDY(AddressingMode::ZP0), 0xA5 => self.LDA(AddressingMode::ZP0), 0xA6 => self.LDX(AddressingMode::ZP0), 0xA8 => self.TAY(AddressingMode::IMP), 0xA9 => self.LDA(AddressingMode::IMM), 0xAA => self.TAX(AddressingMode::IMP), 0xAC => self.LDY(AddressingMode::ABS), 0xAD => self.LDA(AddressingMode::ABS), 0xAE => self.LDX(AddressingMode::ABS),
+                0xB0 => self.BCS(AddressingMode::REL),
+                0xC0 => self.CPY(AddressingMode::IMM),
+                0xD0 => self.BNE(AddressingMode::REL),
+                0xE0 => self.CPX(AddressingMode::IMM),
+                0xF0 => self.BEQ(AddressingMode::REL),
                 _ => self.XXX(AddressingMode::IMP),
             }
         }
@@ -235,69 +228,126 @@ impl CPU {
 
 // Instructions
 impl CPU {
-    fn ADC(&mut self, mode: AddressingMode) {}
-    fn AND(&mut self, mode: AddressingMode) {}
-    fn ASL(&mut self, mode: AddressingMode) {}
-    fn BBR(&mut self, mode: AddressingMode) {}
-    fn BBS(&mut self, mode: AddressingMode) {}
-    fn BCC(&mut self, mode: AddressingMode) {}
-    fn BCS(&mut self, mode: AddressingMode) {}
-    fn BEQ(&mut self, mode: AddressingMode) {}
-    fn BIT(&mut self, mode: AddressingMode) {}
-    fn BMI(&mut self, mode: AddressingMode) {}
-    fn BNE(&mut self, mode: AddressingMode) {}
-    fn BPL(&mut self, mode: AddressingMode) {}
-    fn BRA(&mut self, mode: AddressingMode) {}
+    fn ADC(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn AND(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn ASL(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BBR(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BBS(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BCC(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BCS(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BEQ(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BIT(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BMI(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BNE(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BPL(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BRA(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+
     fn BRK(&mut self, mode: AddressingMode) {
         return
     }
-    fn BVC(&mut self, mode: AddressingMode) {}
-    fn BVS(&mut self, mode: AddressingMode) {}
-    fn CLC(&mut self, mode: AddressingMode) {}
-    fn CLD(&mut self, mode: AddressingMode) {}
-    fn CLI(&mut self, mode: AddressingMode) {}
-    fn CLV(&mut self, mode: AddressingMode) {}
-    fn CMP(&mut self, mode: AddressingMode) {}
-    fn CPX(&mut self, mode: AddressingMode) {}
-    fn CPY(&mut self, mode: AddressingMode) {}
-    fn DEC(&mut self, mode: AddressingMode) {}
+
+    fn BVC(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn BVS(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn CLC(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn CLD(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn CLI(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn CLV(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn CMP(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn CPX(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn CPY(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn DEC(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+
     // TODO: set zero flag when result is 0, negative flag when negative
     fn DEX(&mut self, mode: AddressingMode) {
-        self.x -= 1;
-        if self.x == 0 {
+        if self.x == 1 {
+            // X is 1, so decrement will result in 0
             self.set_flag(Flags::Z, true);
-            // TODO: v true or false?
+            self.x -= 1;
+        } else if self.x == 0 {
+            // X is 0, so decrement will result in negative
+            self.set_flag(Flags::N, true);
+            self.x += 1;
+        } else {
+            self.x -= 1;
         }
     }
+
     fn DEY(&mut self, mode: AddressingMode) {
-        self.y -= 1;
+        todo!();
     }
-    fn EOR(&mut self, mode: AddressingMode) {}
+    fn EOR(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn INC(&mut self, mode: AddressingMode) {
+        todo!();
+    }
 
-    // Increment value at memory location
-    fn INC(&mut self, mode: AddressingMode) {}
-
-    // Increment the X register
     fn INX(&mut self, mode: AddressingMode) {
         self.x += 1;
         self.set_flag(Flags::Z, self.x == 0x00);
         self.set_flag(Flags::N, (self.x & 0x80) ==  0x80);
     }
 
-    // Increment the Y register
     fn INY(&mut self, mode: AddressingMode) {
         self.y += 1;
         self.set_flag(Flags::Z, self.y == 0x80);
         self.set_flag(Flags::N, (self.y & 0x80) == 0x80);
     }
 
-    // Jump to location
     fn JMP(&mut self, mode: AddressingMode) {
-        self.pc = self.addr_abs;
+        let addr = self.get_address(mode);
+        self.pc = self.read_u16(addr);
     }
 
-    // Jump to subroutine (pushing pc to stack before jump so the program can return)
-    fn JSR(&mut self, mode: AddressingMode) {}
+    fn JSR(&mut self, mode: AddressingMode) {
+        todo!();
+    }
 
     // Load the accumulator
     fn LDA(&mut self, mode: AddressingMode) {
@@ -348,27 +398,56 @@ impl CPU {
         self.sp -= 1;
         return 0;
     }
-    fn PHX(&mut self, mode: AddressingMode) {}
-    fn PHY(&mut self, mode: AddressingMode) {}
-    fn PLA(&mut self, mode: AddressingMode) {}
-    fn PLP(&mut self, mode: AddressingMode) {}
-    fn PLX(&mut self, mode: AddressingMode) {}
-    fn PLY(&mut self, mode: AddressingMode) {}
-    fn RMB(&mut self, mode: AddressingMode) {}
-    fn ROL(&mut self, mode: AddressingMode) {}
-    fn ROR(&mut self, mode: AddressingMode) {}
-    fn RTI(&mut self, mode: AddressingMode) {}
-    fn RTS(&mut self, mode: AddressingMode) {}
-    fn SBC(&mut self, mode: AddressingMode) {}
-    fn SEC(&mut self, mode: AddressingMode) {}
-    fn SED(&mut self, mode: AddressingMode) {}
-    fn SEI(&mut self, mode: AddressingMode) {}
-    fn SMB(&mut self, mode: AddressingMode) {}
-
-    // Store accumulator at address
+    fn PHX(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn PHY(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn PLA(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn PLP(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn PLX(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn PLY(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn RMB(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn ROL(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn ROR(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn RTI(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn RTS(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn SBC(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn SEC(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn SED(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn SEI(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+    fn SMB(&mut self, mode: AddressingMode) {
+        todo!();
+    }
     fn STA(&mut self, mode: AddressingMode) {
-        let addr = self.get_address(mode);
-        self.write(self.addr_abs, self.a);
+        todo!();
     }
     fn STP(&mut self, mode: AddressingMode) {}
     fn STX(&mut self, mode: AddressingMode) {}
@@ -386,14 +465,18 @@ impl CPU {
         self.y = self.a;
     }
 
-    fn TRB(&mut self, mode: AddressingMode) {}
+    fn TRB(&mut self, mode: AddressingMode) {
+        todo!();
+    }
 
     // Transfer stack pointer to X register
     fn TSX(&mut self, mode: AddressingMode) {
         self.x = self.sp;
     }
 
-    fn TSB(&mut self, mode: AddressingMode) {}
+    fn TSB(&mut self, mode: AddressingMode) {
+        todo!();
+    }
 
     // Transfer X register to accumulator
     fn TXA(&mut self, mode: AddressingMode) {
@@ -409,7 +492,10 @@ impl CPU {
     fn TYA(&mut self, mode: AddressingMode) {
         self.a = self.y;
     }
-    fn WAI(&mut self, mode: AddressingMode) {}
+
+    fn WAI(&mut self, mode: AddressingMode) {
+        todo!();
+    }
 
     // When an illegal opcode is passed, XXX() is run
     fn XXX(&mut self, mode: AddressingMode) {
