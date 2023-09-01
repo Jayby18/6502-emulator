@@ -384,19 +384,17 @@ impl CPU {
     }
 
     // Push accumulator to stack
-    fn PHA(&mut self, mode: AddressingMode) -> u8 {
+    fn PHA(&mut self, mode: AddressingMode) {
         self.write(0x0100 + (self.sp as u16), self.a);
         self.sp -= 1;
-        return 0;
     }
 
     // Push status register to stack
-    fn PHP(&mut self, mode: AddressingMode) -> u8 {
+    fn PHP(&mut self, mode: AddressingMode) {
         self.write(0x0100 + (self.sp as u16), self.sr | (Flags::B as u8) | (Flags::U as u8));
         self.set_flag(Flags::B, false);
         self.set_flag(Flags::U, false);
         self.sp -= 1;
-        return 0;
     }
     fn PHX(&mut self, mode: AddressingMode) {
         todo!();

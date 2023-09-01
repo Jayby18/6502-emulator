@@ -1,3 +1,5 @@
+// std::env::set_var::("RUST_BACKTRACE", "1");
+
 pub mod cpu;
 pub mod bus;
 pub mod opcodes;
