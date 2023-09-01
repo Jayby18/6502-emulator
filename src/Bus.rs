@@ -16,7 +16,7 @@ impl Bus {
 
     // Read from RAM at addr
     pub fn read(&mut self, addr: u16) -> u8 {
-        return self.ram[addr as usize];
+        self.ram[addr as usize]
     }
 
     // Write u16 data (little endian)
@@ -31,6 +31,6 @@ impl Bus {
     pub fn read_u16(&mut self, addr: u16) -> u16 {
         let lo = self.read(addr) as u16;
         let hi = self.read(addr + 1) as u16;
-        return (hi << 8) | (lo as u16);
+        (hi << 8) | lo
     }
 }

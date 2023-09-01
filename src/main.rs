@@ -5,14 +5,14 @@ pub mod bus;
 pub mod opcodes;
 
 use cpu::CPU;
-use cpu::Flags;
+
 
 use bus::Bus;
 
 fn main() {
     println!("Hello world");
     let bus: Bus = Bus::new();
-    let mut cpu: CPU = CPU::new(bus);
+    let _cpu: CPU = CPU::new(bus);
     // TODO: what kind of reference to bus to pass into cpu?
 }
 
@@ -40,7 +40,7 @@ mod test {
 
         println!("\nSR: {:08b}", cpu.get_status());
     
-        return cpu;
+        cpu
     }
 
     #[test]
@@ -48,8 +48,8 @@ mod test {
         let mut cpu: CPU = run_program(vec![0xA9, 0x05, 0x00]);
 
         assert_eq!(cpu.get_a_reg(), 0x05);
-        assert_eq!(cpu.get_flag(Flags::Z), false);
-        assert_eq!(cpu.get_flag(Flags::N), false);
+        assert!(!cpu.get_flag(Flags::Z));
+        assert!(!cpu.get_flag(Flags::N));
     }
 
     #[test]
@@ -58,7 +58,7 @@ mod test {
 
         println!("Zero: {0:2X}", Flags::Z as u8);
         println!("Zero flag: {}", cpu.get_flag(Flags::Z));
-        assert_eq!(cpu.get_flag(Flags::Z), true);
+        assert!(cpu.get_flag(Flags::Z));
     }
 
     #[test]
