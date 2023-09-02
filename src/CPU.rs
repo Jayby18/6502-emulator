@@ -240,9 +240,14 @@ impl CPU {
 #[allow(non_snake_case)]
 #[allow(unused)]
 impl CPU {
+    // Add with carry
     fn ADC(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr: u16 = self.get_address(mode);
+        let value: u8 = self.read(addr);
+        self.add_to_a(value);
     }
+
+    // Logical AND
     fn AND(&mut self, mode: AddressingMode) {
         todo!();
     }
