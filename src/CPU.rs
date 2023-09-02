@@ -68,18 +68,6 @@ impl CPU {
         }
     }
 
-    pub fn get_a_reg(&self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_a_reg(&mut self, value: u8) {
-        self.a = value;
-    }
-
-    pub fn get_status(&self) -> u8 {
-        return self.sr;
-    }
-
     // Add value to accumulator
     pub fn add_to_a(&mut self, value: u8) {
         println!("Adding {} to A", value);
@@ -117,6 +105,7 @@ impl CPU {
     pub fn clock(&mut self) {
         if self.pc == 0xFFFC {
             let program_start: u16 = self.read_u16(self.pc);
+            println!("Starting program at: {}", program_start);
             self.pc = program_start;
         }
 
@@ -129,7 +118,7 @@ impl CPU {
 
             // TODO: finish opcode matrix (https://i.redd.it/m23p0jhvfwx81.jpg, ignore greyed boxes)
             match opcode {
-                0x00 => self.BRK(AddressingMode::IMP), 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
+                0x00 => return, 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
                 0x10 => self.BPL(AddressingMode::REL), 0x11 => self.ORA(AddressingMode::ZPY), 0x15 => self.ORA(AddressingMode::ZPX), 0x16 => self.ASL(AddressingMode::ZPX), 0x18 => self.CLC(AddressingMode::IMP), 0x1D => self.ORA(AddressingMode::ABX), 0x1E => self.ASL(AddressingMode::ABX),
                 0x20 => self.JSR(AddressingMode::ABS), 0x21 => self.AND(AddressingMode::ZPX), 0x24 => self.BIT(AddressingMode::ZP0), 0x25 => self.AND(AddressingMode::ZP0), 0x26 => self.ROL(AddressingMode::ZP0), 0x28 => self.PLP(AddressingMode::IMP), 0x29 => self.AND(AddressingMode::IMM), 0x2A => self.ROL(AddressingMode::ACC), 0x2C => self.BIT(AddressingMode::ABS), 0x2D => self.AND(AddressingMode::ABS), 0x2E => self.ROL(AddressingMode::ABS),
                 0x30 => self.BMI(AddressingMode::REL),
@@ -534,4 +523,41 @@ pub enum Flags {
     U = 0b0010_0000,    // unused
     V = 0b0100_0000,    // overflow
     N = 0b1000_0000,    // negative
+}
+
+// Testing functions
+impl CPU {
+    // Write program defined as Vec<u8> to memory
+    pub fn load_program(&mut self, program: Vec<u8>) {
+        // Point to program start address
+        self.write_u16(0xFFFC, 0x0600);
+
+        // Write program
+        for i in 0..program.len() {
+            println!("Writing {} to {}", program[i], i as u16);
+            self.write(0x0600 + (i as u16), program[i]);
+        }
+    }
+
+    // Write program to memory, reset, and start clock
+    pub fn quick_start(&mut self, program: Vec<u8>) {
+        self.load_program(program);
+        self.reset();
+        self.clock();
+    }
+
+    // Get A register
+    pub fn get_a_reg(&self) -> u8 {
+        return self.a;
+    }
+
+    // Set A register
+    pub fn set_a_reg(&mut self, value: u8) {
+        self.a = value;
+    }
+
+    // Return status register (flags) as u8
+    pub fn get_status(&self) -> u8 {
+        return self.sr;
+    }
 }

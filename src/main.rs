@@ -4,55 +4,27 @@ pub mod cpu;
 pub mod bus;
 pub mod opcodes;
 
+#[allow(unused_imports)]
 use cpu::CPU;
 #[allow(unused_imports)]
 use cpu::Flags;
 
+#[allow(unused_imports)]
 use bus::Bus;
 
 fn main() {
-    println!("Hello world");
-    let bus: Bus = Bus::new();
-    let _cpu: CPU = CPU::new(bus);
-    // TODO: what kind of reference to bus to pass into cpu?
+    todo!();
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    // Functions to init, load and run CPU
-    fn init_cpu() -> CPU {
+    #[test]
+    fn test_lda_imm_flags() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
-
-        cpu.write(0xFFFD, 0x60);
-        cpu.write(0xFFFC, 0x00);
-
-        cpu
-    }
-
-    fn load_program(cpu: &mut CPU, program: Vec<u8>) {
-        for i in 0..program.len() {
-            cpu.write(0x0600 + (i as u16), program[i]);
-        }
-    }
-
-    fn start_cpu(cpu: &mut CPU) {
-        cpu.reset();
-        cpu.clock();
-    }
-
-    fn run_program(program: Vec<u8>) -> CPU {
-        let mut cpu = init_cpu();
-        load_program(&mut cpu, program);
-        start_cpu(&mut cpu);
-        cpu
-    }
-
-    #[test]
-    fn test_0xa9_flags() {
-        let mut cpu: CPU = run_program(vec![0xA9, 0x05, 0x00]);
+        cpu.quick_start(vec![0xA9, 0x05, 0x00]);
 
         assert_eq!(cpu.get_a_reg(), 0x05);
         assert!(!cpu.get_flag(Flags::Z));
@@ -60,26 +32,30 @@ mod test {
     }
 
     #[test]
-    fn test_0xa9_zero_flag() {
-        let mut cpu: CPU = run_program(vec![0xA9, 0x00, 0x00]);
+    fn test_lda_imm_zero_flag() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+        cpu.quick_start(vec![0xA9, 0x00, 0x00]);
 
-        println!("Zero: {0:2X}", Flags::Z as u8);
-        println!("Zero flag: {}", cpu.get_flag(Flags::Z));
         assert!(cpu.get_flag(Flags::Z));
     }
 
     #[test]
-    fn test_lda_from_memory() {
-        let program = vec![0xA5, 0x10, 0x00];
-    
-        let cpu = run_program(program);
+    fn test_lda_zp0() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+        // write 0x55 to address 0x10
+        cpu.write(0x10, 0x55);
+        // LDA from address 0x10
+        cpu.quick_start(vec![0xA5, 0x10, 0x00]);
 
         assert_eq!(cpu.get_a_reg(), 0x55);
     }
 
     #[test]
     fn test_adc() {
-        let mut cpu: CPU = init_cpu();
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
 
         {   // no carry, no overflow
             println!("\nNo carry, no overflow");
