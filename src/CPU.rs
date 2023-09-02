@@ -68,6 +68,11 @@ impl CPU {
         }
     }
 
+    pub fn set_zero_overflow_flags(&mut self, value: u8) {
+        self.set_flag(Flags::Z, value == 0x00);
+        self.set_flag(Flags::N, (value & 0x80) == 0x80);
+    }
+
     // Add value to accumulator
     pub fn add_to_a(&mut self, value: u8) {
         println!("Adding {} to A", value);
@@ -245,6 +250,7 @@ impl CPU {
         let addr: u16 = self.get_address(mode);
         let value: u8 = self.read(addr);
         self.add_to_a(value);
+        self.set_zero_overflow_flags(self.a);
     }
 
     // Logical AND
@@ -252,6 +258,7 @@ impl CPU {
         let addr: u16 = self.get_address(mode);
         let value: u8 = self.read(addr);
         self.a &= value;
+        self.set_zero_overflow_flags(self.a);
     }
 
     fn ASL(&mut self, mode: AddressingMode) {
@@ -341,9 +348,15 @@ impl CPU {
     fn DEY(&mut self, mode: AddressingMode) {
         todo!();
     }
+
+    // Exclusive OR
     fn EOR(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr: u16 = self.get_address(mode);
+        let value: u8 = self.read(addr);
+        self.a ^= value;
+        self.set_zero_overflow_flags(self.a);
     }
+
     fn INC(&mut self, mode: AddressingMode) {
         todo!();
     }
@@ -373,34 +386,31 @@ impl CPU {
     fn LDA(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
         self.a = self.read(addr);
-        self.set_flag(Flags::Z, self.a == 0x00);
-        self.set_flag(Flags::N, (self.a & 0x80) == 0x80);
+        self.set_zero_overflow_flags(self.a);
     }
 
     // Load the X register
     fn LDX(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
         self.x = self.read(addr);
-        self.set_flag(Flags::Z, self.x == 0x00);
-        self.set_flag(Flags::N, (self.x & 0x80) == 0x80);
+        self.set_zero_overflow_flags(self.x);
     }
 
     // Load the Y register
     fn LDY(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
         self.y = self.read(addr);
-        self.set_flag(Flags::Z, self.y == 0x00);
-        self.set_flag(Flags::N, (self.y & 0x80) == 0x80);
+        self.set_zero_overflow_flags(self.y);
     }
     fn LSR(&mut self, mode: AddressingMode) {}
     fn NOP(&mut self, mode: AddressingMode) {}
 
-    // Bitwise OR
+    // Inclusive OR
     fn ORA(&mut self, mode: AddressingMode) {
-        let addr = self.get_address(mode);
-        self.a |= self.read(addr);
-        self.set_flag(Flags::Z, self.a == 0x00);
-        self.set_flag(Flags::N, (self.a & 0x80) == 0x80);
+        let addr: u8 = self.get_address(mode);
+        let value: u8 = self.read(addr);
+        self.a |= value;
+        self.set_zero_overflow_flags(self.a);
     }
 
     // Push accumulator to stack
