@@ -88,10 +88,10 @@ mod test {
 
         {   // no carry, no overflow -> overflow
             println!("\nNo carry, no overflow -> overflow");
-            cpu.set_flag(Flags::V, true);
-            cpu.set_a_reg(0x0A);
-            cpu.add_to_a(0x10);
-            assert_eq!(cpu.get_a_reg(), 0x1A);
+            cpu.set_a_reg(0x7F);
+            cpu.add_to_a(0x04);
+            assert_eq!(cpu.get_a_reg(), 0x83);
+            assert!(cpu.get_flag(Flags::V));
         }
     }
 }
