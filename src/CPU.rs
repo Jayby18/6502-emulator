@@ -249,8 +249,11 @@ impl CPU {
 
     // Logical AND
     fn AND(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr: u16 = self.get_address(mode);
+        let value: u8 = self.read(addr);
+        self.a &= value;
     }
+
     fn ASL(&mut self, mode: AddressingMode) {
         todo!();
     }
