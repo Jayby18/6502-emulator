@@ -155,7 +155,7 @@ impl CPU {
 
 // Addressing modes
 #[allow(unused)]
-enum AddressingMode {
+pub enum AddressingMode {
     IMM,
     IMP,
     ZP0,
@@ -172,7 +172,7 @@ enum AddressingMode {
 }
 
 impl CPU {
-    fn get_address(&mut self, mode: AddressingMode) -> u16 {
+    pub fn get_address(&mut self, mode: AddressingMode) -> u16 {
         match mode {
             AddressingMode::IMM => {
                 let addr = self.pc;
@@ -570,6 +570,15 @@ impl CPU {
     pub fn set_a_reg(&mut self, value: u8) {
         self.a = value;
     }
+
+    // Get registers
+    pub fn get_pc(&self) -> u16 { self.pc }
+    pub fn get_sp(&self) -> u8 { self.sp }
+    pub fn get_sr(&self) -> u8 { self.sr }
+    pub fn get_a(&self) -> u8 { self.a }
+    pub fn get_x(&self) -> u8 { self.x }
+    pub fn get_y(&self) -> u8 { self.y }
+    pub fn get_opcode(&self) -> u8 { self.opcode }
 
     // Return status register (flags) as u8
     pub fn get_status(&self) -> u8 {

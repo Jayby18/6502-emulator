@@ -96,16 +96,62 @@ mod test {
     }
 
     #[test]
+    fn test_adc_imm() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+
+        // No carry -> no carry
+        {
+            cpu.quick_start(vec![0xA9, 0x10, 0x69, 0x02, 0x00]);
+            assert_eq!(cpu.get_a_reg(), 0x12);
+            assert!(!cpu.get_flag(Flags::C));
+            assert!(!cpu.get_flag(Flags::V));
+        }
+
+        // Carry -> no carry
+        {
+            // TODO: how to verify carry?
+            cpu.set_flag(Flags::C, true);
+            cpu.quick_start(vec![0xA9, 0x10, 0x69, 0x02, 0x00]);
+            assert_eq!(cpu.get_a_reg(), 0x12);
+            assert!(!cpu.get_flag(Flags::C));
+            assert!(!cpu.get_flag(Flags::V));
+        }
+
+        // No carry -> carry
+        {
+            cpu.quick_start(vec![0xA9, 0xFE, 0x69, 0x03, 0x00]);
+            assert_eq!(cpu.get_a_reg(), 0x01);
+            assert!(cpu.get_flag(Flags::C));
+            assert!(!cpu.get_flag(Flags::V));
+        }
+
+        // Overflow -> no overflow
+        {
+            cpu.quick_start(vec![]);
+        }
+
+        // No overflow -> overflow
+    }
+
+    #[test]
     fn test_and_imm() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
         // LDA(IMM) with 0x6b, AND(IMM) with 0x2c
-        cpu.quick_start(vec![0xA9, 0x6b, 0x29, 0x2c]);
+        cpu.quick_start(vec![0xA9, 0x6b, 0x29, 0x2c, 0x00]);
 
         assert_eq!(cpu.get_a_reg(), 0x28);
     }
 
-    // TODO: test all addressing modes
+    // TODO: test all addressing modes (should be relatively simple, though, might not be necessary)
+    // #[test]
+    // fn test_addressing_modes() {
+    //     let bus: Bus = Bus::new();
+    //     let mut cpu: CPU = CPU::new(bus);
+    //     use cpu::AddressingMode;
+    //     assert_eq!(cpu.get_address(AddressingMode::IMM), cpu.get_pc() - 1);
+    // }
 
     // TODO: test all (?) instructions
 
