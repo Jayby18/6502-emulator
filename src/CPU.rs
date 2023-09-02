@@ -12,6 +12,7 @@ pub struct CPU {
     bus: Bus,      // memory bus
 }
 
+#[allow(unused)]
 impl CPU {
     pub fn new(bus: Bus) -> Self {
         let cpu = CPU {
@@ -66,14 +67,38 @@ impl CPU {
             self.sr &= !(f as u8);
         }
     }
-    
+
     pub fn get_a_reg(&self) -> u8 {
         return self.a;
+    }
+
+    pub fn set_a_reg(&mut self, value: u8) {
+        self.a = value;
     }
 
     pub fn get_status(&self) -> u8 {
         return self.sr;
     }
+
+    // Add value to accumulator
+    pub fn add_to_a(&mut self, value: u8) {
+        println!("Adding {} to A", value);
+        // Sum accumulator, value and carry
+        let sum: u16 = self.a as u16 + value as u16 + if self.get_flag(Flags::C) { 1 } else { 0 } ;
+        println!("Sum: {}", sum);
+
+        // Set carry flag
+        self.set_flag(Flags::C, sum > 0xff);
+
+        let result = sum as u8;
+        self.set_flag(Flags::V, (value ^ result) & (result ^ self.a) & 0x80 != 0);
+
+        println!("Result: {}", result);
+        self.a = result;
+
+        // TODO: verify this with a test
+    }
+    
     // Reset
     pub fn reset(&mut self) {
         println!("Resetting. (PC: {:02X})", self.pc);
@@ -127,21 +152,17 @@ impl CPU {
 
     // Interrupt request (irq)
     fn irq(&mut self) {
-
+        todo!();
     }
 
     // Not maskeable interrupt (nmi)
     fn nmi(&mut self) {
-
-    }
-
-    // TODO: Fetch data
-    fn fetch(&mut self) -> u8 {
-        0
+        todo!();
     }
 }
 
 // Addressing modes
+#[allow(unused)]
 enum AddressingMode {
     IMM,
     IMP,
@@ -227,6 +248,8 @@ impl CPU {
 }
 
 // Instructions
+#[allow(non_snake_case)]
+#[allow(unused)]
 impl CPU {
     fn ADC(&mut self, mode: AddressingMode) {
         todo!();
