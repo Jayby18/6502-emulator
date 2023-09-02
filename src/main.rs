@@ -53,7 +53,7 @@ mod test {
     }
 
     #[test]
-    fn test_adc() {
+    fn test_add_to_a() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
 
@@ -94,4 +94,20 @@ mod test {
             assert!(cpu.get_flag(Flags::V));
         }
     }
+
+    #[test]
+    fn test_and_imm() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+        // LDA(IMM) with 0x6b, AND(IMM) with 0x2c
+        cpu.quick_start(vec![0xA9, 0x6b, 0x29, 0x2c]);
+
+        assert_eq!(cpu.get_a_reg(), 0x28);
+    }
+
+    // TODO: test all addressing modes
+
+    // TODO: test all (?) instructions
+
+    // TODO: test all opcodes (or is it too much?)
 }
