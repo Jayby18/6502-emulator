@@ -155,6 +155,42 @@ mod test {
         assert_eq!(cpu.get_a_reg(), 0x2A);
     }
 
+    #[test]
+    fn test_asl_acc() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+        {
+            cpu.quick_start(vec![0xA9, 0b0010_1000, 0x0A, 0x00]);
+            assert_eq!(cpu.get_a_reg(), 0b0101_0000);
+            assert!(!cpu.get_flag(Flags::C));
+            assert!(!cpu.get_flag(Flags::N));
+            assert!(!cpu.get_flag(Flags::Z));
+        }
+
+        {
+            cpu.quick_start(vec![0xA9, 0b1010_0000, 0x0A, 0x00]);
+            assert_eq!(cpu.get_a_reg(), 0b0100_0000);
+            assert!(cpu.get_flag(Flags::C));
+            println!("A: {}", cpu.get_a_reg());
+        }
+
+        {
+            cpu.quick_start(vec![0xA9, 0b1000_0000, 0x0A, 0x00]);
+            assert_eq!(cpu.get_a_reg(), 0x00);
+            assert!(cpu.get_flag(Flags::C));
+            assert!(cpu.get_flag(Flags::Z));
+            assert!(!cpu.get_flag(Flags::N));
+        }
+
+        {
+            cpu.quick_start(vec![0xA9, 0b0100_0000, 0x0A, 0x00]);
+            assert_eq!(cpu.get_a_reg(), 0b1000_0000);
+            assert!(cpu.get_flag(Flags::N));
+            assert!(!cpu.get_flag(Flags::Z));
+            assert!(!cpu.get_flag(Flags::C));
+        }
+    }
+
     // TODO: test all addressing modes (should be relatively simple, though, might not be necessary)
     // #[test]
     // fn test_addressing_modes() {

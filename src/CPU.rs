@@ -153,6 +153,7 @@ impl CPU {
 
 // Addressing modes
 #[allow(unused)]
+#[derive(PartialEq)]
 pub enum AddressingMode {
     IMM,
     IMP,
@@ -257,8 +258,27 @@ impl CPU {
         self.set_zero_overflow_flags(self.a);
     }
 
+    // TODO: arithmetic shift left
     fn ASL(&mut self, mode: AddressingMode) {
-        todo!();
+        if mode == AddressingMode::ACC {
+            self.set_flag(Flags::C, self.a & 0x80 == 0x80);
+
+            let shift: u8 = self.a << 1;
+            self.a = shift;
+
+            self.set_flag(Flags::N, shift & 0x80 == 0x80);
+            self.set_flag(Flags::Z, self.a == 0x00);
+        } else {
+            let addr: u16 = self.get_address(mode);
+            let value: u8 = self.read(addr);
+            
+            self.set_flag(Flags::C, value & 0x80 == 0x80);
+
+            let shift: u8 = value << 1;
+            self.write(addr, shift);
+
+            self.set_flag(Flags::N, shift & 0x80 == 0x80);
+        }
     }
     fn BBR(&mut self, mode: AddressingMode) {
         todo!();
