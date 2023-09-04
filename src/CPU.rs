@@ -85,8 +85,6 @@ impl CPU {
 
         let result = sum as u8;
         self.set_flag(Flags::V, (value ^ result) & (result ^ self.a) & 0x80 != 0);
-
-        println!("Result: {}", result);
         self.a = result;
     }
     

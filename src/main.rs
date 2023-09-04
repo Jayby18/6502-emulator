@@ -144,6 +144,17 @@ mod test {
         assert_eq!(cpu.get_a_reg(), 0x28);
     }
 
+    // write number to memory, lda immediate, ldx immediate, then adc with zpx
+    #[test]
+    fn test_adc_zpx() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+        cpu.write(0x00F1, 0x27);
+        cpu.quick_start(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
+
+        assert_eq!(cpu.get_a_reg(), 0x2A);
+    }
+
     // TODO: test all addressing modes (should be relatively simple, though, might not be necessary)
     // #[test]
     // fn test_addressing_modes() {
