@@ -159,6 +159,7 @@ mod test {
     fn test_asl_acc() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
+
         {
             cpu.quick_start(vec![0xA9, 0b0010_1000, 0x0A, 0x00]);
             assert_eq!(cpu.get_a_reg(), 0b0101_0000);
@@ -190,6 +191,8 @@ mod test {
             assert!(!cpu.get_flag(Flags::C));
         }
     }
+
+    // TODO: test ASL with different mode
 
     // TODO: test all addressing modes (should be relatively simple, though, might not be necessary)
     // #[test]
