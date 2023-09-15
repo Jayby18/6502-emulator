@@ -1,5 +1,18 @@
 // std::env::set_var::("RUST_BACKTRACE", "1");
 
+use std::io;
+use tui::{
+    backend::CrosstermBackend,
+    widgets::{Widget, Block, Borders},
+    layout::{Layout, Constraint, Direction},
+    Terminal,
+};
+use crossterm::{
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+
 pub mod cpu;
 pub mod bus;
 pub mod opcodes;
@@ -8,15 +21,40 @@ pub mod opcodes;
 use cpu::CPU;
 #[allow(unused_imports)]
 use cpu::Flags;
-
 #[allow(unused_imports)]
 use bus::Bus;
 
-fn main() {
-    let bus: Bus = Bus::new();
-    let mut cpu: CPU = CPU::new(bus);
-    cpu.write(0x00F1, 0x27);
-    cpu.quick_start(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
+fn main() -> Result<(), io::Error> {
+    // let bus: Bus = Bus::new();
+    // let mut cpu: CPU = CPU::new(bus);
+    // cpu.write(0x00F1, 0x27);
+    // cpu.quick_start(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
+
+    // Set up terminal
+    enable_raw_mode()?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+
+    // Clear terminal
+    // terminal.clear()?;
+
+    // Draw interface
+    terminal.draw(|f| {
+        let size = f.size();
+        let block = Block::default()
+            .title("Block")
+            .borders(Borders::ALL);
+        f.render_widget(block, size);
+    })?;
+
+    // Restore terminal
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen, DisableMouseCapture)?;
+    terminal.show_cursor()?;
+
+    Ok(())
 }
 
 #[cfg(test)]
