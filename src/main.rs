@@ -115,7 +115,7 @@ fn main() -> Result<(), io::Error> {
                 ])
                 .split(halves[1]);
 
-            println!("A register: {}", cpu_state[0]);
+            // println!("A register: {}", cpu_state[0]);
 
             let registers = Table::new(vec![
                 Row::new(cpu_state.iter().map(|&value| value.to_string()).collect::<Vec<_>>())
@@ -213,17 +213,17 @@ mod test {
         let mut cpu: CPU = CPU::new(bus);
 
         {   // no carry, no overflow
-            println!("\nNo carry, no overflow");
+            // println!("\nNo carry, no overflow");
             cpu.set_a_reg(0x0A);
             cpu.add_to_a(0x10);
-            println!("{}", cpu.get_a_reg());
+            // println!("{}", cpu.get_a_reg());
             assert_eq!(cpu.get_a_reg(), 0x1A);
             assert!(!cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::V));
         }
 
         {   // no carry -> carry, no overflow
-            println!("\nNo carry -> carry, no overflow");
+            // println!("\nNo carry -> carry, no overflow");
             cpu.set_a_reg(0xFF);
             cpu.add_to_a(0x01);
             assert_eq!(cpu.get_a_reg(), 0);
@@ -232,7 +232,7 @@ mod test {
         }
 
         {   // carry -> no carry, no overflow
-            println!("\nCarry -> no carry, no overflow");
+            // println!("\nCarry -> no carry, no overflow");
             cpu.set_flag(Flags::C, true);
             cpu.set_a_reg(0x0A);
             cpu.add_to_a(0x10);
@@ -242,7 +242,7 @@ mod test {
         }
 
         {   // no carry, no overflow -> overflow
-            println!("\nNo carry, no overflow -> overflow");
+            // println!("\nNo carry, no overflow -> overflow");
             cpu.set_a_reg(0x7F);
             cpu.add_to_a(0x04);
             assert_eq!(cpu.get_a_reg(), 0x83);
@@ -327,7 +327,7 @@ mod test {
             cpu.quick_start(vec![0xA9, 0b1010_0000, 0x0A, 0x00]);
             assert_eq!(cpu.get_a_reg(), 0b0100_0000);
             assert!(cpu.get_flag(Flags::C));
-            println!("A: {}", cpu.get_a_reg());
+            // println!("A: {}", cpu.get_a_reg());
         }
 
         {
