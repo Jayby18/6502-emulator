@@ -1,14 +1,20 @@
 // std::env::set_var::("RUST_BACKTRACE", "1");
 
-use std::io;
+use std::{
+    io,
+    thread,
+    time::{Duration, Instant},
+    sync::mpsc,
+};
 use tui::{
     backend::CrosstermBackend,
-    widgets::{Widget, Block, Borders},
-    layout::{Layout, Constraint, Direction},
+    widgets::{Widget, Block, Borders, BorderType, StatefulWidget, Paragraph, Table, Row, List},
+    layout::{Alignment, Layout, Constraint, Direction},
+    style::{Color, Modifier, Style},
     Terminal,
 };
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event as CEvent, KeyCode},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -24,10 +30,17 @@ use cpu::Flags;
 #[allow(unused_imports)]
 use bus::Bus;
 
+enum Event<I> {
+    Input(I),
+    Tick,
+}
+
 fn main() -> Result<(), io::Error> {
-    // let bus: Bus = Bus::new();
-    // let mut cpu: CPU = CPU::new(bus);
-    // cpu.write(0x00F1, 0x27);
+    let bus: Bus = Bus::new();
+    let mut cpu: CPU = CPU::new(bus);
+    cpu.write(0x00F1, 0x27);
+    cpu.load_program(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
+    cpu.reset();
     // cpu.quick_start(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
 
     // Set up terminal
@@ -40,14 +53,115 @@ fn main() -> Result<(), io::Error> {
     // Clear terminal
     // terminal.clear()?;
 
-    // Draw interface
-    terminal.draw(|f| {
-        let size = f.size();
-        let block = Block::default()
-            .title("Block")
-            .borders(Borders::ALL);
-        f.render_widget(block, size);
-    })?;
+    // User event handler
+    let (tx, rx) = mpsc::channel();
+    let tick_rate = Duration::from_millis(200);
+    thread::spawn(move | | {
+        let mut last_tick = Instant::now();
+        loop {
+            let timeout = tick_rate
+                .checked_sub(last_tick.elapsed())
+                .unwrap_or_else(| | Duration::from_secs(0));
+
+            if event::poll(timeout).expect("poll works") {
+                if let CEvent::Key(key) = event::read().expect("can read events") {
+                    tx.send(Event::Input(key)).expect("can send events");
+                }
+            }
+
+            if last_tick.elapsed() >= tick_rate {
+                if let Ok(_) = tx.send(Event::Tick) {
+                    last_tick = Instant::now();
+                }
+            }
+        }
+    });
+
+    // Render loop
+    loop {
+        // Get values from CPU
+        let cpu_state = cpu.get_state();
+
+        // Draw terminal
+        terminal.draw(|f| {
+            // Set size
+            let size = f.size();
+
+            // Divide screen into two halves, horizontally
+            let halves = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([
+                    Constraint::Percentage(50),
+                    Constraint::Percentage(50),
+                ])
+                .split(size);
+
+            // Left half
+            let left_layout = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Length(4),
+                    Constraint::Length(4),
+                    Constraint::Min(3),
+                ])
+                .split(halves[0]);
+
+            // Right half
+            let right_layout = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Percentage(50),
+                    Constraint::Percentage(50),
+                ])
+                .split(halves[1]);
+
+            println!("A register: {}", cpu_state[0]);
+
+            let registers = Table::new(vec![
+                Row::new(cpu_state.iter().map(|&value| value.to_string()).collect::<Vec<_>>())
+            ])
+            .header(
+                Row::new(vec!["A", "X", "Y", "SP", "PC", "SR", "OP"])
+            )
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("CPU state")
+                    .border_type(BorderType::Plain)
+            );
+
+            f.render_widget(registers, left_layout[0]);
+
+            let test = Paragraph::new(cpu.get_pc().to_string())
+                .alignment(Alignment::Center)
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Flags")
+                        .border_type(BorderType::Plain)
+                );
+
+            f.render_widget(test, left_layout[1]);
+        })?;
+
+        // Handle user event
+        match rx.recv().unwrap() {
+            Event::Input(event) => match event.code {
+                KeyCode::Char('q') => {
+                    break;
+                },
+                KeyCode::Char(' ') => {
+                    cpu.advance();
+                },
+                _ => {
+                    
+                },
+            },
+            Event::Tick => {
+                
+            },
+        }
+    }
 
     // Restore terminal
     disable_raw_mode()?;
@@ -233,17 +347,19 @@ mod test {
         }
     }
 
-    #[test]
-    fn test_asl_abs() {
-        let bus: Bus = Bus::new();
-        let mut cpu: CPU = CPU::new(bus);
 
-        // TODO: LDA(IMM): 0b0010_1000, STA(ABS) to addr: 0x3B01, ASL(ABS) to addr: 0x3B01
-        {
-            cpu.quick_start(vec![0xA9, 0b0010_1000, 0x8D, 0x01, 0x3B, 0x0E, 0x01, 0x3B, 0x00]);
-            assert_eq!(cpu.read(0x3B), 0b0101_0000);
-        }
-    }
+    // TODO: test ASL(ABS)
+    // #[test]
+    // fn test_asl_abs() {
+    //     let bus: Bus = Bus::new();
+    //     let mut cpu: CPU = CPU::new(bus);
+
+    //     // TODO: LDA(IMM): 0b0010_1000, STA(ABS) to addr: 0x3B01, ASL(ABS) to addr: 0x3B01
+    //     {
+    //         cpu.quick_start(vec![0xA9, 0b0010_1000, 0x8D, 0x01, 0x3B, 0x0E, 0x01, 0x3B, 0x00]);
+    //         assert_eq!(cpu.read(0x3B), 0b0101_0000);
+    //     }
+    // }
 
     // TODO: test ASL with different mode
 

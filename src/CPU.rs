@@ -1,7 +1,4 @@
 use crate::bus::Bus;
-use std::io::{self, Read};
-
-const STEP_BY_STEP: bool = true;
 
 pub struct CPU {
     // byte: u8, word: u16
@@ -140,12 +137,45 @@ impl CPU {
                 0xF0 => self.BEQ(AddressingMode::REL),
                 _ => self.XXX(AddressingMode::IMP),
             }
+        }
+    }
 
-            if STEP_BY_STEP {
-                let mut buffer = [0; 1];
-                let stdin = io::stdin();
-                let _ = stdin.lock().read_exact(&mut buffer);
-                println!("Resuming...");
+    // Advance by one step
+    pub fn advance(&mut self) {
+        if self.pc == 0xFFFC {
+            let program_start: u16 = self.read_u16(self.pc);
+            println!("Starting program at: {}", program_start);
+            self.pc = program_start;
+        } else {
+            let opcode = self.read(self.pc);
+            println!("\n New clock cycle.");
+            println!("PC: {}", self.pc);
+            println!("OP: {}", opcode);
+            self.pc += 1;
+
+            if opcode == 0x00 {
+                return
+            }
+
+            // TODO: finish opcode matrix (https://i.redd.it/m23p0jhvfwx81.jpg, ignore greyed boxes)
+            match opcode {
+                0x00 => return, 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
+                0x10 => self.BPL(AddressingMode::REL), 0x11 => self.ORA(AddressingMode::ZPY), 0x15 => self.ORA(AddressingMode::ZPX), 0x16 => self.ASL(AddressingMode::ZPX), 0x18 => self.CLC(AddressingMode::IMP), 0x1D => self.ORA(AddressingMode::ABX), 0x1E => self.ASL(AddressingMode::ABX),
+                0x20 => self.JSR(AddressingMode::ABS), 0x21 => self.AND(AddressingMode::ZPX), 0x24 => self.BIT(AddressingMode::ZP0), 0x25 => self.AND(AddressingMode::ZP0), 0x26 => self.ROL(AddressingMode::ZP0), 0x28 => self.PLP(AddressingMode::IMP), 0x29 => self.AND(AddressingMode::IMM), 0x2A => self.ROL(AddressingMode::ACC), 0x2C => self.BIT(AddressingMode::ABS), 0x2D => self.AND(AddressingMode::ABS), 0x2E => self.ROL(AddressingMode::ABS),
+                0x30 => self.BMI(AddressingMode::REL), 0x31 => self.AND(AddressingMode::ZPX), 0x35 => self.AND(AddressingMode::ZPX), 0x36 => self.ROL(AddressingMode::ZPX), 0x38 => self.SEC(AddressingMode::IMP), 0x39 => self.AND(AddressingMode::ABY), 0x3D => self.AND(AddressingMode::ABX), 0x3E => self.ROL(AddressingMode::ABX),
+                0x40 => self.RTI(AddressingMode::IMP), 0x41 => self.EOR(AddressingMode::ZPX), 0x45 => self.EOR(AddressingMode::ZP0), 0x46 => self.LSR(AddressingMode::ZP0), 0x48 => self.PHA(AddressingMode::IMP), 0x49 => self.EOR(AddressingMode::IMM), 0x4A => self.LSR(AddressingMode::ACC), 0x4C => self.JMP(AddressingMode::ABS), 0x4D => self.EOR(AddressingMode::ABS), 0x4E => self.LSR(AddressingMode::ABS),
+                0x50 => self.BVC(AddressingMode::REL), 0x51 => self.EOR(AddressingMode::ZPY), 0x55 => self.EOR(AddressingMode::ZPY), 0x56 => self.LSR(AddressingMode::ZPX), 0x58 => self.CLI(AddressingMode::IMP), 0x59 => self.EOR(AddressingMode::ABY), 0x5D => self.EOR(AddressingMode::ABX), 0x5E => self.LSR(AddressingMode::ABX),
+                0x60 => self.RTS(AddressingMode::IMP), 0x61 => self.ADC(AddressingMode::ZPX), 0x65 => self.ADC(AddressingMode::ZP0), 0x66 => self.ROR(AddressingMode::ZP0), 0x68 => self.PLA(AddressingMode::IMP), 0x69 => self.ADC(AddressingMode::IMM), 0x6A => self.ROR(AddressingMode::ACC), 0x6C => self.JMP(AddressingMode::IND), 0x6D => self.ADC(AddressingMode::ABS), 0x6E => self.ROR(AddressingMode::ABS),
+                0x70 => self.BVS(AddressingMode::REL), 0x71 => self.ADC(AddressingMode::ZPY), 0x75 => self.ADC(AddressingMode::ZPX), 
+                0x80 => self.NOP(AddressingMode::IMM), 0x8D => self.STA(AddressingMode::ABS),
+                0x90 => self.BCC(AddressingMode::REL),
+                0xA0 => self.LDY(AddressingMode::IMM), 0xA1 => self.LDA(AddressingMode::ZPX), 0xA2 => self.LDX(AddressingMode::IMM), 0xA4 => self.LDY(AddressingMode::ZP0), 0xA5 => self.LDA(AddressingMode::ZP0), 0xA6 => self.LDX(AddressingMode::ZP0), 0xA8 => self.TAY(AddressingMode::IMP), 0xA9 => self.LDA(AddressingMode::IMM), 0xAA => self.TAX(AddressingMode::IMP), 0xAC => self.LDY(AddressingMode::ABS), 0xAD => self.LDA(AddressingMode::ABS), 0xAE => self.LDX(AddressingMode::ABS),
+                0xB0 => self.BCS(AddressingMode::REL),
+                0xC0 => self.CPY(AddressingMode::IMM),
+                0xD0 => self.BNE(AddressingMode::REL),
+                0xE0 => self.CPX(AddressingMode::IMM),
+                0xF0 => self.BEQ(AddressingMode::REL),
+                _ => self.XXX(AddressingMode::IMP),
             }
         }
     }
@@ -627,5 +657,21 @@ impl CPU {
     // Return status register (flags) as u8
     pub fn get_status(&self) -> u8 {
         return self.sr;
+    }
+
+    pub fn get_state(&self) -> Vec<u16> {
+        vec![
+            self.get_a() as u16,
+            self.get_x() as u16,
+            self.get_y() as u16,
+            self.get_sp() as u16,
+            self.get_pc(),
+            self.get_sr() as u16,
+            self.get_opcode() as u16,
+        ]
+    }
+
+    pub fn get_memory(&self) -> [u8; 64 * 1024] {
+        self.bus.get_ram()
     }
 }

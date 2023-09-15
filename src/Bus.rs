@@ -33,4 +33,9 @@ impl Bus {
         let hi = self.read(addr + 1) as u16;
         (hi << 8) | lo
     }
+
+    // Return entire RAM
+    pub fn get_ram(&self) -> [u8; 64 * 1024] {
+        self.ram
+    }
 }
