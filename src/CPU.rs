@@ -1,4 +1,7 @@
 use crate::bus::Bus;
+use std::io::{self, Read};
+
+const STEP_BY_STEP: bool = true;
 
 pub struct CPU {
     // byte: u8, word: u16
@@ -136,6 +139,13 @@ impl CPU {
                 0xE0 => self.CPX(AddressingMode::IMM),
                 0xF0 => self.BEQ(AddressingMode::REL),
                 _ => self.XXX(AddressingMode::IMP),
+            }
+
+            if STEP_BY_STEP {
+                let mut buffer = [0; 1];
+                let stdin = io::stdin();
+                let _ = stdin.lock().read_exact(&mut buffer);
+                println!("Resuming...");
             }
         }
     }

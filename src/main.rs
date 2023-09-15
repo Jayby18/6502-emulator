@@ -13,7 +13,10 @@ use cpu::Flags;
 use bus::Bus;
 
 fn main() {
-    todo!();
+    let bus: Bus = Bus::new();
+    let mut cpu: CPU = CPU::new(bus);
+    cpu.write(0x00F1, 0x27);
+    cpu.quick_start(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
 }
 
 #[cfg(test)]
