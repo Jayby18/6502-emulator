@@ -127,7 +127,7 @@ impl CPU {
                 0x50 => self.BVC(AddressingMode::REL), 0x51 => self.EOR(AddressingMode::ZPY), 0x55 => self.EOR(AddressingMode::ZPY), 0x56 => self.LSR(AddressingMode::ZPX), 0x58 => self.CLI(AddressingMode::IMP), 0x59 => self.EOR(AddressingMode::ABY), 0x5D => self.EOR(AddressingMode::ABX), 0x5E => self.LSR(AddressingMode::ABX),
                 0x60 => self.RTS(AddressingMode::IMP), 0x61 => self.ADC(AddressingMode::ZPX), 0x65 => self.ADC(AddressingMode::ZP0), 0x66 => self.ROR(AddressingMode::ZP0), 0x68 => self.PLA(AddressingMode::IMP), 0x69 => self.ADC(AddressingMode::IMM), 0x6A => self.ROR(AddressingMode::ACC), 0x6C => self.JMP(AddressingMode::IND), 0x6D => self.ADC(AddressingMode::ABS), 0x6E => self.ROR(AddressingMode::ABS),
                 0x70 => self.BVS(AddressingMode::REL), 0x71 => self.ADC(AddressingMode::ZPY), 0x75 => self.ADC(AddressingMode::ZPX), 
-                0x80 => self.NOP(AddressingMode::IMM),
+                0x80 => self.NOP(AddressingMode::IMM), 0x8D => self.STA(AddressingMode::ABS),
                 0x90 => self.BCC(AddressingMode::REL),
                 0xA0 => self.LDY(AddressingMode::IMM), 0xA1 => self.LDA(AddressingMode::ZPX), 0xA2 => self.LDX(AddressingMode::IMM), 0xA4 => self.LDY(AddressingMode::ZP0), 0xA5 => self.LDA(AddressingMode::ZP0), 0xA6 => self.LDX(AddressingMode::ZP0), 0xA8 => self.TAY(AddressingMode::IMP), 0xA9 => self.LDA(AddressingMode::IMM), 0xAA => self.TAX(AddressingMode::IMP), 0xAC => self.LDY(AddressingMode::ABS), 0xAD => self.LDA(AddressingMode::ABS), 0xAE => self.LDX(AddressingMode::ABS),
                 0xB0 => self.BCS(AddressingMode::REL),
@@ -489,13 +489,29 @@ impl CPU {
     fn SMB(&mut self, mode: AddressingMode) {
         todo!();
     }
+
+    // Store accumulator
     fn STA(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr: u16 = self.get_address(mode);
+        self.write(addr, self.a);
     }
-    fn STP(&mut self, mode: AddressingMode) {}
-    fn STX(&mut self, mode: AddressingMode) {}
-    fn STY(&mut self, mode: AddressingMode) {}
-    fn STZ(&mut self, mode: AddressingMode) {}
+
+    fn STP(&mut self, mode: AddressingMode) {
+        // TODO
+        println!("STP");
+    }
+    fn STX(&mut self, mode: AddressingMode) {
+        // TODO
+        println!("STX");
+    }
+    fn STY(&mut self, mode: AddressingMode) {
+        // TODO
+        println!("STY");
+    }
+    fn STZ(&mut self, mode: AddressingMode) {
+        // TODO
+        println!("STZ");
+    }
 
     // TODO: set Z and N flags in transfer functions
     // Transfer accumulator to X register

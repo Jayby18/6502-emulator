@@ -192,6 +192,18 @@ mod test {
         }
     }
 
+    #[test]
+    fn test_asl_abs() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+
+        // TODO: LDA(IMM): 0b0010_1000, STA(ABS) to addr: 0x3B01, ASL(ABS) to addr: 0x3B01
+        {
+            cpu.quick_start(vec![0xA9, 0b0010_1000, 0x8D, 0x01, 0x3B, 0x0E, 0x01, 0x3B, 0x00]);
+            assert_eq!(cpu.read(0x3B), 0b0101_0000);
+        }
+    }
+
     // TODO: test ASL with different mode
 
     // TODO: test all addressing modes (should be relatively simple, though, might not be necessary)
