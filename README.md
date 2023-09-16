@@ -2,6 +2,8 @@
 
 Written in Rust.
 
+![](./examples/SCR-20230916-jplo.png)
+
 ## To do
 
 ### Backend
@@ -24,6 +26,8 @@ Written in Rust.
         - [ ] Edit memory
     - [ ] Display (for NES PPU)
     - [ ] Menus (to emulation mode)
+    - [ ] Theming
+        - FIXME: highlighted table row only works in terminal dark mode
 
 ## Specific system emulation
 
