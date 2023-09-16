@@ -89,13 +89,20 @@ fn main() -> Result<(), io::Error> {
         terminal.draw(|f| {
             // Set size
             let size = f.size();
+            let mut display_width;
+            if (size.width / 2) % 2 == 0 {
+                display_width = size.width / 2;
+            } else {
+                display_width = (size.width / 2) - 1;
+            }
+            let display_height = display_width / 256 * 240;
 
             // Divide screen into two halves, horizontally
             let halves = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([
                     Constraint::Percentage(50),
-                    Constraint::Percentage(50),
+                    Constraint::Length(display_width),
                 ])
                 .split(size);
 
@@ -113,7 +120,7 @@ fn main() -> Result<(), io::Error> {
             let right_layout = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
-                    Constraint::Percentage(50),
+                    Constraint::Length(display_height),
                     Constraint::Min(3),
                     Constraint::Length(6),
                 ])
@@ -207,6 +214,43 @@ fn main() -> Result<(), io::Error> {
             ])
             .column_spacing(1);
             f.render_widget(program_list, left_layout[2]);
+
+            // TODO: proper implementation
+            // For now, I just write to memory starting at address 0x3000.
+            // In NES, there are 32 horizontal and 30 vertical tiles, each 8x8 pixels.
+            // Each tile gets a memory address (starting left top), and the bits correspond to the pixels.
+            // Here, I'll start with 8 by 8 virtual pixels.
+
+            let v_pixels: Vec<u8> = vec![
+                0, 0, 1, 1, 1, 1, 0, 0,
+                0, 0, 0, 1, 1, 0, 0, 0,
+                0, 0, 1, 0, 0, 1, 0, 0,
+                0, 1, 0, 0, 0, 0, 1, 1,
+                0, 1, 1, 1, 1, 1, 1, 1,
+                0, 1, 1, 1, 1, 1, 1, 1,
+                0, 0, 1, 1, 1, 1, 1, 0,
+                0, 0, 0, 1, 1, 0, 0, 0,
+            ];
+
+            let v_pixel_array: Vec<Vec<u8>> = v_pixels.chunks(8).map(|chunk| chunk.to_vec()).collect();
+            
+            // Display (PPU)
+            // TODO: doesn't work yet either
+            let display = Table::new(
+                v_pixel_array.iter().map(|row| {
+                    Row::new(row.iter().map(|&pixel| {
+                        if pixel == 1 {
+                            Cell::from("1").style(Style::default().bg(Color::White))
+                        } else {
+                            Cell::from("0")
+                        }
+                    }))
+                })
+            )
+            .block(Block::default().title("Display"))
+            .widths(&[Constraint::Length(1), Constraint::Length(1)])
+            .column_spacing(0);
+            f.render_widget(display, right_layout[0]);
 
             // Help
             let help = Paragraph::new("<space>: advance to next cycle\n<enter>: start clock\nr: reset CPU\nq: quit application")
