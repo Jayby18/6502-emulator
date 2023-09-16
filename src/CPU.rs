@@ -614,6 +614,22 @@ pub enum Flags {
     N = 0b1000_0000,    // negative
 }
 
+impl Flags {
+    pub fn from_str(string: &str) -> u8 {
+        match string {
+            "C" => 0b0000_0001,
+            "Z" => 0b0000_0010,
+            "I" => 0b0000_0100,
+            "D" => 0b0000_1000,
+            "B" => 0b0001_0000,
+            "U" => 0b0010_0000,
+            "V" => 0b0100_0000,
+            "N" => 0b1000_0000,
+            _ => 0,
+        }
+    }
+}
+
 // Testing functions
 impl CPU {
     // Write program defined as Vec<u8> to memory

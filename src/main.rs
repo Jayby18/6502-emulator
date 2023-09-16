@@ -8,7 +8,7 @@ use std::{
 };
 use tui::{
     backend::CrosstermBackend,
-    widgets::{Widget, Block, Borders, BorderType, StatefulWidget, Paragraph, Table, Row, List},
+    widgets::{Widget, Block, Borders, BorderType, StatefulWidget, Paragraph, Table, Row, List, Cell},
     layout::{Alignment, Layout, Constraint, Direction},
     style::{Color, Modifier, Style},
     Terminal,
@@ -39,7 +39,9 @@ fn main() -> Result<(), io::Error> {
     let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::new(bus);
     cpu.write(0x00F1, 0x27);
-    cpu.load_program(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
+    // cpu.load_program(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
+    // cpu.load_program(vec![0xA9, 0b1000_0000, 0x0A, 0x00]);
+    cpu.load_program(vec![0xA9, 0xA5, 0x69, 0x37, 0x29, 0xF0, 0x0A, 0xA9, 0x5A, 0x69, 0xC3, 0x29, 0x0F, 0x0A, 0xA9, 0x12, 0x69, 0x34, 0x29, 0xAA, 0x0A, 0x00]);
     cpu.reset();
     // cpu.quick_start(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
 
@@ -102,7 +104,7 @@ fn main() -> Result<(), io::Error> {
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Length(4),
-                    Constraint::Length(4),
+                    Constraint::Length(3),
                     Constraint::Min(3),
                 ])
                 .split(halves[0]);
@@ -113,7 +115,7 @@ fn main() -> Result<(), io::Error> {
                 .constraints([
                     Constraint::Percentage(50),
                     Constraint::Min(3),
-                    Constraint::Length(4),
+                    Constraint::Length(5),
                 ])
                 .split(halves[1]);
 
@@ -143,8 +145,17 @@ fn main() -> Result<(), io::Error> {
 
             // Status flags
             let flags = Table::new(vec![
-                Row::new(vec!["C", "Z", "I", "D", "B", "U", "V", "N"]),
-                Row::new(format!("{:08b}", cpu_state[5]).chars().map(|c| c.to_string()).collect::<Vec<_>>())
+                Row::new(vec!["C", "Z", "I", "D", "B", "U", "V", "N"]
+                    .iter()
+                    .map(|&flag| {
+                        if cpu_state[5] & Flags::from_str(flag) as u16 == 1 {
+                            Cell::from(flag).style(Style::default().bg(Color::White).fg(Color::Black))
+                        } else {
+                            Cell::from(flag)
+                        }
+                    })
+                ),
+                // Row::new(format!("{:08b}", cpu_state[5]).chars().map(|c| c.to_string()).collect::<Vec<_>>())
             ])
             .block(
                 Block::default()
@@ -164,34 +175,42 @@ fn main() -> Result<(), io::Error> {
             .column_spacing(1);
             f.render_widget(flags, left_layout[1]);
 
-            // Program instruction list
-            let program: Vec<u8> = cpu.get_memory().iter().cloned().skip(0x0600).take_while(|&value| value != (0x00 as u8)).collect::<Vec<_>>();
-            // let indices: Vec<u16> = (0x0600..(0x0600 + program.len() as u16)).collect();
+            // Memory (from program start)
+            // let program: Vec<u8> = cpu.get_memory().iter().cloned().skip(0x0600).take_while(|&value| value != (0x00 as u8)).collect::<Vec<_>>();
+            let program: Vec<u8> = cpu.get_memory().iter().cloned().skip(0x0600).collect::<Vec<_>>();
             let indices: Vec<u16> = (0..(0 + program.len() as u16)).collect();
 
-            // TODO: highlight current instruction
+            // TODO: grey out 0x00 value entries
+
             let program_list = Table::new(
                 indices
                     .iter()
-                    .map(|i| Row::new(vec![format!("0x{:04X}", 0x0600 + i), format!("0x{:02X}",program[*i as usize]).to_string()]))
+                    .map(|i| {
+                        if indices[*i as usize] + 0x0600 == cpu_state[4] {
+                            Row::new(vec![format!("0x{:04X}", 0x0600 + i), format!("0x{:02X}",program[*i as usize]).to_string()])
+                                .style(Style::default().bg(Color::White).fg(Color::Black))
+                        } else {
+                            Row::new(vec![format!("0x{:04X}", 0x0600 + i), format!("0x{:02X}",program[*i as usize]).to_string()])
+                        }
+                    })
             )
             .header(
-                Row::new(vec!["Address", "Opcode"])
+                Row::new(vec!["Address", "Value"])
             )
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Program")
+                    .title("Memory")
             )
             .widths(&[
-                Constraint::Percentage(33),
-                Constraint::Percentage(33),
+                Constraint::Percentage(50),
+                Constraint::Percentage(50),
             ])
             .column_spacing(1);
             f.render_widget(program_list, left_layout[2]);
 
             // Help
-            let help = Paragraph::new("q:       quit application\n<space>: advance CPU to next cycle")
+            let help = Paragraph::new("q: quit application\n<space>: advance to next cycle\nr: reset CPU")
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
@@ -209,6 +228,9 @@ fn main() -> Result<(), io::Error> {
                 KeyCode::Char(' ') => {
                     cpu.advance();
                 },
+                KeyCode::Char('r') => {
+                    cpu.reset();
+                }
                 _ => {
                     
                 },
