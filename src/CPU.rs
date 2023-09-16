@@ -29,7 +29,8 @@ impl CPU {
         return cpu;
     }
 
-    // Write & read bus
+    /// Write data to specific address through the bus
+
     pub fn write(&mut self, addr: u16, data: u8) {
         self.bus.write(addr, data);
     }
@@ -47,6 +48,7 @@ impl CPU {
     }
 
     // Flags
+    /// Return whether status register has flag
     pub fn get_flag(&mut self, f: Flags) -> bool {
         // Return value of status register corresponding to flag f
         if self.sr & (f as u8) != 0 {
@@ -56,6 +58,7 @@ impl CPU {
         }
     }
 
+    /// Set flag according to boolean
     pub fn set_flag(&mut self, f: Flags, v: bool) {
         // TODO: what is v again?
         if v {
