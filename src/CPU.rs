@@ -75,10 +75,10 @@ impl CPU {
 
     // Add value to accumulator
     pub fn add_to_a(&mut self, value: u8) {
-        println!("Adding {} to A", value);
+        // println!("Adding {} to A", value);
         // Sum accumulator, value and carry
         let sum: u16 = self.a as u16 + value as u16 + if self.get_flag(Flags::C) { 1 } else { 0 } ;
-        println!("Sum: {}", sum);
+        // println!("Sum: {}", sum);
 
         // Set carry flag
         self.set_flag(Flags::C, sum > 0xff);
@@ -90,7 +90,7 @@ impl CPU {
     
     // Reset
     pub fn reset(&mut self) {
-        println!("\nResetting. (PC: {:02X})", self.pc);
+        // println!("\nResetting. (PC: {:02X})", self.pc);
         self.pc = 0xFFFC;
 
         // Reset all registers (except program counter)
@@ -106,15 +106,15 @@ impl CPU {
     pub fn clock(&mut self) {
         if self.pc == 0xFFFC {
             let program_start: u16 = self.read_u16(self.pc);
-            println!("Starting program at: {}", program_start);
+            // println!("Starting program at: {}", program_start);
             self.pc = program_start;
         }
 
         loop {
             let opcode = self.read(self.pc);
-            println!("\nNew clock cycle.");
-            println!("PC: {}", self.pc);
-            println!("OP: {}", opcode);
+            // println!("\nNew clock cycle.");
+            // println!("PC: {}", self.pc);
+            // println!("OP: {}", opcode);
             self.pc += 1;
 
             // TODO: finish opcode matrix (https://i.redd.it/m23p0jhvfwx81.jpg, ignore greyed boxes)
@@ -144,13 +144,13 @@ impl CPU {
     pub fn advance(&mut self) {
         if self.pc == 0xFFFC {
             let program_start: u16 = self.read_u16(self.pc);
-            println!("Starting program at: {}", program_start);
+            // println!("Starting program at: {}", program_start);
             self.pc = program_start;
         } else {
             let opcode = self.read(self.pc);
-            println!("\n New clock cycle.");
-            println!("PC: {}", self.pc);
-            println!("OP: {}", opcode);
+            // println!("\n New clock cycle.");
+            // println!("PC: {}", self.pc);
+            // println!("OP: {}", opcode);
             self.pc += 1;
 
             if opcode == 0x00 {
@@ -538,19 +538,19 @@ impl CPU {
 
     fn STP(&mut self, mode: AddressingMode) {
         // TODO
-        println!("STP");
+        // println!("STP");
     }
     fn STX(&mut self, mode: AddressingMode) {
         // TODO
-        println!("STX");
+        // println!("STX");
     }
     fn STY(&mut self, mode: AddressingMode) {
         // TODO
-        println!("STY");
+        // println!("STY");
     }
     fn STZ(&mut self, mode: AddressingMode) {
         // TODO
-        println!("STZ");
+        // println!("STZ");
     }
 
     // TODO: set Z and N flags in transfer functions
@@ -623,7 +623,7 @@ impl CPU {
 
         // Write program
         for i in 0..program.len() {
-            println!("Writing {} to {}", program[i], i as u16);
+            // println!("Writing {} to {}", program[i], i as u16);
             self.write(0x0600 + (i as u16), program[i]);
         }
     }

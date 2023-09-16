@@ -81,6 +81,7 @@ fn main() -> Result<(), io::Error> {
     loop {
         // Get values from CPU
         let cpu_state = cpu.get_state();
+        let mem = cpu.get_memory();
 
         // Draw terminal
         terminal.draw(|f| {
@@ -111,37 +112,92 @@ fn main() -> Result<(), io::Error> {
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Percentage(50),
-                    Constraint::Percentage(50),
+                    Constraint::Min(3),
+                    Constraint::Length(4),
                 ])
                 .split(halves[1]);
 
             // println!("A register: {}", cpu_state[0]);
 
+            // Register table
             let registers = Table::new(vec![
-                Row::new(cpu_state.iter().map(|&value| value.to_string()).collect::<Vec<_>>())
+                Row::new(vec!["A", "X", "Y", "SP", "PC", "SR", "OP"]),
+                Row::new(cpu_state.iter().cloned().map(|value| format!("0x{:02X}", value).to_string()).collect::<Vec<_>>())
             ])
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Registers")
+            )
+            .widths(&[
+                Constraint::Percentage(13),
+                Constraint::Percentage(13),
+                Constraint::Percentage(13),
+                Constraint::Percentage(13),
+                Constraint::Percentage(13),
+                Constraint::Percentage(13),
+                Constraint::Percentage(13)
+            ])
+            .column_spacing(1);
+            f.render_widget(registers, left_layout[0]);
+
+            // Status flags
+            let flags = Table::new(vec![
+                Row::new(vec!["C", "Z", "I", "D", "B", "U", "V", "N"]),
+                Row::new(format!("{:08b}", cpu_state[5]).chars().map(|c| c.to_string()).collect::<Vec<_>>())
+            ])
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Flags")
+            )
+            .widths(&[
+                Constraint::Percentage(12),
+                Constraint::Percentage(12),
+                Constraint::Percentage(12),
+                Constraint::Percentage(12),
+                Constraint::Percentage(12),
+                Constraint::Percentage(12),
+                Constraint::Percentage(12),
+                Constraint::Percentage(12)
+            ])
+            .column_spacing(1);
+            f.render_widget(flags, left_layout[1]);
+
+            // Program instruction list
+            let program: Vec<u8> = cpu.get_memory().iter().cloned().skip(0x0600).take_while(|&value| value != (0x00 as u8)).collect::<Vec<_>>();
+            // let indices: Vec<u16> = (0x0600..(0x0600 + program.len() as u16)).collect();
+            let indices: Vec<u16> = (0..(0 + program.len() as u16)).collect();
+
+            // TODO: highlight current instruction
+            let program_list = Table::new(
+                indices
+                    .iter()
+                    .map(|i| Row::new(vec![format!("0x{:04X}", 0x0600 + i), format!("0x{:02X}",program[*i as usize]).to_string()]))
+            )
             .header(
-                Row::new(vec!["A", "X", "Y", "SP", "PC", "SR", "OP"])
+                Row::new(vec!["Address", "Opcode"])
             )
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("CPU state")
-                    .border_type(BorderType::Plain)
-            );
+                    .title("Program")
+            )
+            .widths(&[
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
+            ])
+            .column_spacing(1);
+            f.render_widget(program_list, left_layout[2]);
 
-            f.render_widget(registers, left_layout[0]);
-
-            let test = Paragraph::new(cpu.get_pc().to_string())
-                .alignment(Alignment::Center)
+            // Help
+            let help = Paragraph::new("q:       quit application\n<space>: advance CPU to next cycle")
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
-                        .title("Flags")
-                        .border_type(BorderType::Plain)
+                        .title("Help")
                 );
-
-            f.render_widget(test, left_layout[1]);
+            f.render_widget(help, right_layout[2]);
         })?;
 
         // Handle user event
