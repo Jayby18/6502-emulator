@@ -40,8 +40,6 @@ fn main() -> Result<(), io::Error> {
     let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::new(bus);
     cpu.write(0x00F1, 0x27);
-    // cpu.load_program(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
-    // cpu.load_program(vec![0xA9, 0b1000_0000, 0x0A, 0x00]);
     cpu.load_program(vec![0xA9, 0xA5, 0x69, 0x37, 0x29, 0xF0, 0x0A, 0xA9, 0x5A, 0x69, 0xC3, 0x29, 0x0F, 0x0A, 0xA9, 0x12, 0x69, 0x34, 0x29, 0xAA, 0x0A, 0x00]);
     cpu.reset();
 
@@ -89,7 +87,7 @@ fn main() -> Result<(), io::Error> {
         terminal.draw(|f| {
             // Set size
             let size = f.size();
-            let mut display_width;
+            let display_width;
             if (size.width / 2) % 2 == 0 {
                 display_width = size.width / 2;
             } else {
@@ -240,15 +238,15 @@ fn main() -> Result<(), io::Error> {
                 v_pixel_array.iter().map(|row| {
                     Row::new(row.iter().map(|&pixel| {
                         if pixel == 1 {
-                            Cell::from("1").style(Style::default().bg(Color::White))
+                            Cell::from("hello").style(Style::default().bg(Color::White))
                         } else {
-                            Cell::from("0")
+                            Cell::from("world")
                         }
                     }))
                 })
             )
             .block(Block::default().title("Display"))
-            .widths(&[Constraint::Length(1), Constraint::Length(1)])
+            // .widths(&[Constraint::Length(1), Constraint::Length(1)])
             .column_spacing(0);
             f.render_widget(display, right_layout[0]);
 

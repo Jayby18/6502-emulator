@@ -1,2 +1,4 @@
-/target
+target/
 .DS_Store
+
+!target/doc/mos_6502_emulator/*
