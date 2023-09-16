@@ -180,8 +180,6 @@ fn main() -> Result<(), io::Error> {
             let program: Vec<u8> = cpu.get_memory().iter().cloned().skip(0x0600).collect::<Vec<_>>();
             let indices: Vec<u16> = (0..(0 + program.len() as u16)).collect();
 
-            // TODO: grey out 0x00 value entries
-
             let program_list = Table::new(
                 indices
                     .iter()
@@ -189,6 +187,8 @@ fn main() -> Result<(), io::Error> {
                         if indices[*i as usize] + 0x0600 == cpu_state[4] {
                             Row::new(vec![format!("0x{:04X}", 0x0600 + i), format!("0x{:02X}",program[*i as usize]).to_string()])
                                 .style(Style::default().bg(Color::White).fg(Color::Black))
+                        } else if program[*i as usize] == 0x00 {
+                            Row::new(vec![format!("0x{:04X}", 0x0600 + i), "----".to_string()])
                         } else {
                             Row::new(vec![format!("0x{:04X}", 0x0600 + i), format!("0x{:02X}",program[*i as usize]).to_string()])
                         }
