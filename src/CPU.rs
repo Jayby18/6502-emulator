@@ -111,14 +111,14 @@ impl CPU {
         }
 
         loop {
-            let opcode = self.read(self.pc);
+            self.opcode = self.read(self.pc);
             // println!("\nNew clock cycle.");
             // println!("PC: {}", self.pc);
             // println!("OP: {}", opcode);
             self.pc += 1;
 
             // TODO: finish opcode matrix (https://i.redd.it/m23p0jhvfwx81.jpg, ignore greyed boxes)
-            match opcode {
+            match self.opcode {
                 0x00 => return, 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
                 0x10 => self.BPL(AddressingMode::REL), 0x11 => self.ORA(AddressingMode::ZPY), 0x15 => self.ORA(AddressingMode::ZPX), 0x16 => self.ASL(AddressingMode::ZPX), 0x18 => self.CLC(AddressingMode::IMP), 0x1D => self.ORA(AddressingMode::ABX), 0x1E => self.ASL(AddressingMode::ABX),
                 0x20 => self.JSR(AddressingMode::ABS), 0x21 => self.AND(AddressingMode::ZPX), 0x24 => self.BIT(AddressingMode::ZP0), 0x25 => self.AND(AddressingMode::ZP0), 0x26 => self.ROL(AddressingMode::ZP0), 0x28 => self.PLP(AddressingMode::IMP), 0x29 => self.AND(AddressingMode::IMM), 0x2A => self.ROL(AddressingMode::ACC), 0x2C => self.BIT(AddressingMode::ABS), 0x2D => self.AND(AddressingMode::ABS), 0x2E => self.ROL(AddressingMode::ABS),
@@ -147,18 +147,18 @@ impl CPU {
             // println!("Starting program at: {}", program_start);
             self.pc = program_start;
         } else {
-            let opcode = self.read(self.pc);
+            self.opcode = self.read(self.pc);
             // println!("\n New clock cycle.");
             // println!("PC: {}", self.pc);
             // println!("OP: {}", opcode);
             self.pc += 1;
 
-            if opcode == 0x00 {
+            if self.opcode == 0x00 {
                 return
             }
 
             // TODO: finish opcode matrix (https://i.redd.it/m23p0jhvfwx81.jpg, ignore greyed boxes)
-            match opcode {
+            match self.opcode {
                 0x00 => return, 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
                 0x10 => self.BPL(AddressingMode::REL), 0x11 => self.ORA(AddressingMode::ZPY), 0x15 => self.ORA(AddressingMode::ZPX), 0x16 => self.ASL(AddressingMode::ZPX), 0x18 => self.CLC(AddressingMode::IMP), 0x1D => self.ORA(AddressingMode::ABX), 0x1E => self.ASL(AddressingMode::ABX),
                 0x20 => self.JSR(AddressingMode::ABS), 0x21 => self.AND(AddressingMode::ZPX), 0x24 => self.BIT(AddressingMode::ZP0), 0x25 => self.AND(AddressingMode::ZP0), 0x26 => self.ROL(AddressingMode::ZP0), 0x28 => self.PLP(AddressingMode::IMP), 0x29 => self.AND(AddressingMode::IMM), 0x2A => self.ROL(AddressingMode::ACC), 0x2C => self.BIT(AddressingMode::ABS), 0x2D => self.AND(AddressingMode::ABS), 0x2E => self.ROL(AddressingMode::ABS),
@@ -192,7 +192,6 @@ impl CPU {
 }
 
 // Addressing modes
-#[allow(unused)]
 #[derive(PartialEq)]
 pub enum AddressingMode {
     IMM,

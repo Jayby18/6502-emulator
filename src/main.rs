@@ -8,9 +8,9 @@ use std::{
 };
 use tui::{
     backend::CrosstermBackend,
-    widgets::{Widget, Block, Borders, BorderType, StatefulWidget, Paragraph, Table, Row, List, Cell},
-    layout::{Alignment, Layout, Constraint, Direction},
-    style::{Color, Modifier, Style},
+    widgets::{Block, Borders, Paragraph, Table, Row, Cell},
+    layout::{Layout, Constraint, Direction},
+    style::{Color, Style},
     Terminal,
 };
 use crossterm::{
@@ -36,6 +36,7 @@ enum Event<I> {
 }
 
 fn main() -> Result<(), io::Error> {
+    // Init bus and CPU
     let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::new(bus);
     cpu.write(0x00F1, 0x27);
@@ -43,7 +44,6 @@ fn main() -> Result<(), io::Error> {
     // cpu.load_program(vec![0xA9, 0b1000_0000, 0x0A, 0x00]);
     cpu.load_program(vec![0xA9, 0xA5, 0x69, 0x37, 0x29, 0xF0, 0x0A, 0xA9, 0x5A, 0x69, 0xC3, 0x29, 0x0F, 0x0A, 0xA9, 0x12, 0x69, 0x34, 0x29, 0xAA, 0x0A, 0x00]);
     cpu.reset();
-    // cpu.quick_start(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
 
     // Set up terminal
     enable_raw_mode()?;
@@ -53,7 +53,7 @@ fn main() -> Result<(), io::Error> {
     let mut terminal = Terminal::new(backend)?;
 
     // Clear terminal
-    // terminal.clear()?;
+    terminal.clear()?;
 
     // User event handler
     let (tx, rx) = mpsc::channel();
@@ -115,7 +115,7 @@ fn main() -> Result<(), io::Error> {
                 .constraints([
                     Constraint::Percentage(50),
                     Constraint::Min(3),
-                    Constraint::Length(5),
+                    Constraint::Length(6),
                 ])
                 .split(halves[1]);
 
@@ -176,8 +176,7 @@ fn main() -> Result<(), io::Error> {
             f.render_widget(flags, left_layout[1]);
 
             // Memory (from program start)
-            // let program: Vec<u8> = cpu.get_memory().iter().cloned().skip(0x0600).take_while(|&value| value != (0x00 as u8)).collect::<Vec<_>>();
-            let program: Vec<u8> = cpu.get_memory().iter().cloned().skip(0x0600).collect::<Vec<_>>();
+            let program: Vec<u8> = mem.iter().cloned().skip(0x0600).collect::<Vec<_>>();
             let indices: Vec<u16> = (0..(0 + program.len() as u16)).collect();
 
             let program_list = Table::new(
@@ -200,7 +199,7 @@ fn main() -> Result<(), io::Error> {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Memory")
+                    .title("Memory (from program start)")
             )
             .widths(&[
                 Constraint::Percentage(50),
@@ -210,7 +209,7 @@ fn main() -> Result<(), io::Error> {
             f.render_widget(program_list, left_layout[2]);
 
             // Help
-            let help = Paragraph::new("q: quit application\n<space>: advance to next cycle\nr: reset CPU")
+            let help = Paragraph::new("<space>: advance to next cycle\n<enter>: start clock\nr: reset CPU\nq: quit application")
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
@@ -230,7 +229,10 @@ fn main() -> Result<(), io::Error> {
                 },
                 KeyCode::Char('r') => {
                     cpu.reset();
-                }
+                },
+                KeyCode::Enter => {
+                    cpu.clock();
+                },
                 _ => {
                     
                 },
