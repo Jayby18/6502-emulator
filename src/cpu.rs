@@ -133,9 +133,9 @@ impl CPU {
                 0x80 => self.NOP(AddressingMode::IMM), 0x8D => self.STA(AddressingMode::ABS),
                 0x90 => self.BCC(AddressingMode::REL),
                 0xA0 => self.LDY(AddressingMode::IMM), 0xA1 => self.LDA(AddressingMode::ZPX), 0xA2 => self.LDX(AddressingMode::IMM), 0xA4 => self.LDY(AddressingMode::ZP0), 0xA5 => self.LDA(AddressingMode::ZP0), 0xA6 => self.LDX(AddressingMode::ZP0), 0xA8 => self.TAY(AddressingMode::IMP), 0xA9 => self.LDA(AddressingMode::IMM), 0xAA => self.TAX(AddressingMode::IMP), 0xAC => self.LDY(AddressingMode::ABS), 0xAD => self.LDA(AddressingMode::ABS), 0xAE => self.LDX(AddressingMode::ABS),
-                0xB0 => self.BCS(AddressingMode::REL),
+                0xB0 => self.BCS(AddressingMode::REL), 0xB8 => self.CLV(AddressingMode::IMP),
                 0xC0 => self.CPY(AddressingMode::IMM),
-                0xD0 => self.BNE(AddressingMode::REL),
+                0xD0 => self.BNE(AddressingMode::REL), 0xD8 => self.CLD(AddressingMode::IMP),
                 0xE0 => self.CPX(AddressingMode::IMM),
                 0xF0 => self.BEQ(AddressingMode::REL),
                 _ => self.XXX(AddressingMode::IMP),
@@ -173,9 +173,9 @@ impl CPU {
                 0x80 => self.NOP(AddressingMode::IMM), 0x8D => self.STA(AddressingMode::ABS),
                 0x90 => self.BCC(AddressingMode::REL),
                 0xA0 => self.LDY(AddressingMode::IMM), 0xA1 => self.LDA(AddressingMode::ZPX), 0xA2 => self.LDX(AddressingMode::IMM), 0xA4 => self.LDY(AddressingMode::ZP0), 0xA5 => self.LDA(AddressingMode::ZP0), 0xA6 => self.LDX(AddressingMode::ZP0), 0xA8 => self.TAY(AddressingMode::IMP), 0xA9 => self.LDA(AddressingMode::IMM), 0xAA => self.TAX(AddressingMode::IMP), 0xAC => self.LDY(AddressingMode::ABS), 0xAD => self.LDA(AddressingMode::ABS), 0xAE => self.LDX(AddressingMode::ABS),
-                0xB0 => self.BCS(AddressingMode::REL),
+                0xB0 => self.BCS(AddressingMode::REL), 0xB8 => self.CLV(AddressingMode::IMP),
                 0xC0 => self.CPY(AddressingMode::IMM),
-                0xD0 => self.BNE(AddressingMode::REL),
+                0xD0 => self.BNE(AddressingMode::REL), 0xD8 => self.CLD(AddressingMode::IMP),
                 0xE0 => self.CPX(AddressingMode::IMM),
                 0xF0 => self.BEQ(AddressingMode::REL),
                 _ => self.XXX(AddressingMode::IMP),
@@ -358,8 +358,20 @@ impl CPU {
     fn BCS(&mut self, mode: AddressingMode) {
         todo!();
     }
+    // Add relative displacement to program counter if zero flag is set
+    // TODO: currently, underflow will panic. How did original 6502 handle this?
+    // TODO: assuming that the 6502 uses two's complement for now. Check this later!
     fn BEQ(&mut self, mode: AddressingMode) {
-        todo!();
+        if self.get_flag(Flags::Z) {
+            let offset = self.read(self.pc);
+            if offset >= 128 {
+                // offset is negative
+                self.pc += ((!offset) + 1) as u16;
+            } else {
+                // offset is positive
+                self.pc += offset as u16;
+            }
+        }
     }
     fn BIT(&mut self, mode: AddressingMode) {
         todo!();
@@ -387,17 +399,21 @@ impl CPU {
     fn BVS(&mut self, mode: AddressingMode) {
         todo!();
     }
+    // Clear the carry flag to zero
     fn CLC(&mut self, mode: AddressingMode) {
-        todo!();
+        self.set_flag(Flags::C, false);
     }
+    // Clear decimal mode flag to zero
     fn CLD(&mut self, mode: AddressingMode) {
-        todo!();
+        self.set_flag(Flags::D, false);
     }
+    // Clear interrupt disable flag to zero
     fn CLI(&mut self, mode: AddressingMode) {
-        todo!();
+        self.set_flag(Flags::I, false);
     }
+    // Clear overflow flag to zero
     fn CLV(&mut self, mode: AddressingMode) {
-        todo!();
+        self.set_flag(Flags::V, false);
     }
     fn CMP(&mut self, mode: AddressingMode) {
         todo!();

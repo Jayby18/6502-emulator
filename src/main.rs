@@ -414,13 +414,12 @@ mod test {
 
     #[test]
     fn rel() {
-        
+        // TODO: how to test relative addressing?
     }
 
     #[test]
     fn acc() {
-        // Instructions with this addressing mode operate directly on the accumulator, so no address is needed.
-        // TODO: how do I test this then?
+        // TODO: how to test accumulator addressing?
     }
 
     // TODO: Test all instructions
@@ -596,6 +595,45 @@ mod test {
         }
     }
 
+    #[test]
+    fn clc() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        assert!(!cpu.get_flag(Flags::C));
+        cpu.set_flag(Flags::C, true);
+        assert!(cpu.get_flag(Flags::C));
+        cpu.quick_start(vec![0x18, 0x00]);
+        assert!(!cpu.get_flag(Flags::C));
+    }
+
+    #[test]
+    fn cld() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        assert!(!cpu.get_flag(Flags::D));
+        cpu.set_flag(Flags::D, true);
+        assert!(cpu.get_flag(Flags::D));
+        cpu.quick_start(vec![0xD8, 0x00]);
+        assert!(!cpu.get_flag(Flags::D));
+    }
+
+    #[test]
+    fn cli() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        assert!(!cpu.get_flag(Flags::I));
+        cpu.set_flag(Flags::I, true);
+        assert!(cpu.get_flag(Flags::I));
+        cpu.quick_start(vec![0x58, 0x00]);
+        assert!(!cpu.get_flag(Flags::I));
+    }
+
+    #[test]
+    fn clv() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        assert!(!cpu.get_flag(Flags::V));
+        cpu.set_flag(Flags::V, true);
+        assert!(cpu.get_flag(Flags::V));
+        cpu.quick_start(vec![0xB8, 0x00]);
+        assert!(!cpu.get_flag(Flags::V));
+    }
 
     // TODO: test ASL(ABS)
     // #[test]

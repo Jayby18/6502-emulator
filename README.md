@@ -10,7 +10,7 @@
 
 - [x] Implement all addressing modes
 - [ ] Test all addressing modes
-    - [ ] IMP
+    - [x] IMP
     - [ ] REL
     - [ ] ACC
     - [x] all others
@@ -28,7 +28,7 @@
     - [x] BRK
     - [ ] BVC
     - [ ] BVS
-    - [ ] CLC
+    - [x] CLC
     - [ ] CLD
     - [ ] CLI
     - [ ] CLV
@@ -73,6 +73,7 @@
     - [ ] TYA
     - [x] XXX
 - [ ] Test all instructions
+- [ ] Count cycles
 
 ### Frontend
 
