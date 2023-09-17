@@ -676,5 +676,29 @@ mod test {
         // LDA 0x02, JMP to pointer specified by 0x1234 (so to 0x2430). Then LDA 0x04 and BRK.
         cpu.quick_start(vec![0xA9, 0x02, 0x6C, 0x34, 0x12]);
         assert_eq!(cpu.get_a(), 0x04);
-    }    
+    }
+
+    #[test]
+    fn sec() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        assert!(!cpu.get_flag(Flags::C));
+        cpu.quick_start(vec![0x38, 0x00]);
+        assert!(cpu.get_flag(Flags::C));
+    }
+
+    #[test]
+    fn sed() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        assert!(!cpu.get_flag(Flags::D));
+        cpu.quick_start(vec![0xF8, 0x00]);
+        assert!(cpu.get_flag(Flags::D));
+    }
+
+    #[test]
+    fn sei() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        assert!(!cpu.get_flag(Flags::I));
+        cpu.quick_start(vec![0x78, 0x00]);
+        assert!(cpu.get_flag(Flags::I));
+    }
 }
