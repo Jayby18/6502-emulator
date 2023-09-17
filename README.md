@@ -24,6 +24,7 @@ Written in Rust.
         - [x] View memory
         - [ ] Scroll memory
         - [ ] Edit memory
+    - [ ] Port to `ratatui`
     - [ ] Display (for NES PPU)
     - [ ] Menus (to emulation mode)
     - [ ] Theming
