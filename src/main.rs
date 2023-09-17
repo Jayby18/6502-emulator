@@ -609,7 +609,6 @@ mod test {
         }
     }
 
-    // TODO: test BEQ
     #[test]
     fn beq_rel_pos() {
         let mut cpu: CPU = CPU::new(Bus::new());

@@ -19,7 +19,7 @@ impl CPU {
             a: 0x00,
             x: 0x00,
             y: 0x00,
-            sp: 0x00,
+            sp: 0xFF,
             pc: 0x0000,
             sr: 0x00,
             opcode: 0x00,
@@ -47,6 +47,19 @@ impl CPU {
         return self.bus.read_u16(addr);
     }
 
+    // Push to stack
+    pub fn push(&mut self, data: u8) {
+        self.sp -= 1;
+        self.write(0x0100 + (self.sp as u16), data);
+    }
+
+    // Pop off stack
+    pub fn pop(&mut self) -> u8 {
+        let data = self.read(0x0100 + (self.sp as u16));
+        self.sp += 1;
+        return data;
+    }
+
     // Flags
     /// Return whether status register has flag
     pub fn get_flag(&mut self, f: Flags) -> bool {
@@ -71,7 +84,7 @@ impl CPU {
         }
     }
 
-    pub fn set_zero_overflow_flags(&mut self, value: u8) {
+    pub fn set_zero_negative_flags(&mut self, value: u8) {
         self.set_flag(Flags::Z, value == 0x00);
         self.set_flag(Flags::N, (value & 0x80) == 0x80);
     }
@@ -313,7 +326,9 @@ impl CPU {
         let addr: u16 = self.get_address(mode);
         let value: u8 = self.read(addr);
         self.add_to_a(value);
-        self.set_zero_overflow_flags(self.a);
+        self.set_zero_negative_flags(self.a);
+        // TODO: set C if overflow in bit 7
+        // TODO: set V if sign bit is incorrect
     }
 
     // Logical AND
@@ -321,7 +336,7 @@ impl CPU {
         let addr: u16 = self.get_address(mode);
         let value: u8 = self.read(addr);
         self.a &= value;
-        self.set_zero_overflow_flags(self.a);
+        self.set_zero_negative_flags(self.a);
     }
 
     // TODO: arithmetic shift left
@@ -346,21 +361,40 @@ impl CPU {
             self.set_flag(Flags::N, shift & 0x80 == 0x80);
         }
     }
-    fn BBR(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn BBS(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn BCC(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn BCS(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    // Add relative displacement to program counter if zero flag is set
+
+    // Regarding all branch instructions:
     // TODO: currently, underflow will panic. How did original 6502 handle this?
     // TODO: assuming that the 6502 uses two's complement for now. Check this later!
+
+    // Branch if carry clear
+    fn BCC(&mut self, mode: AddressingMode) {
+        if !self.get_flag(Flags::C) {
+            let offset = self.read(self.pc);
+            if offset >= 128 {
+                // offset is negative
+                self.pc -= ((!offset) + 1) as u16;
+            } else {
+                // offset is positive
+                self.pc += offset as u16;
+            }
+        }
+    }
+
+    // Branch if carry set
+    fn BCS(&mut self, mode: AddressingMode) {
+        if self.get_flag(Flags::C) {
+            let offset = self.read(self.pc);
+            if offset >= 128 {
+                // offset is negative
+                self.pc -= ((!offset) + 1) as u16;
+            } else {
+                // offset is positive
+                self.pc += offset as u16;
+            }
+        }
+    }
+
+    // Branch if equal (zero flag set)
     fn BEQ(&mut self, mode: AddressingMode) {
         if self.get_flag(Flags::Z) {
             let offset = self.read(self.pc);
@@ -373,25 +407,73 @@ impl CPU {
             }
         }
     }
+
     fn BIT(&mut self, mode: AddressingMode) {
         todo!();
     }
+
+    // Branch if minus (negative flag set)
     fn BMI(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn BNE(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn BPL(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn BRA(&mut self, mode: AddressingMode) {
-        todo!();
+        if self.get_flag(Flags::N) {
+            let offset = self.read(self.pc);
+            if offset >= 128 {
+                // offset is negative
+                self.pc -= ((!offset) + 1) as u16;
+            } else {
+                // offset is positive
+                self.pc += offset as u16;
+            }
+        }
     }
 
-    // Break
+    // Branch if not equal (zero flag clear)
+    fn BNE(&mut self, mode: AddressingMode) {
+        if !self.get_flag(Flags::Z) {
+            let offset = self.read(self.pc);
+            if offset >= 128 {
+                // offset is negative
+                self.pc -= ((!offset) + 1) as u16;
+            } else {
+                // offset is positive
+                self.pc += offset as u16;
+            }
+        }
+    }
+
+    // Branch if positive (negative flag clear)
+    fn BPL(&mut self, mode: AddressingMode) {
+        if !self.get_flag(Flags::N) {
+            let offset = self.read(self.pc);
+            if offset >= 128 {
+                // offset is negative
+                self.pc -= ((!offset) + 1) as u16;
+            } else {
+                // offset is positive
+                self.pc += offset as u16;
+            }
+        }
+    }
+
+    // Break (temporary hack)
+    // fn BRK(&mut self, mode: AddressingMode) {
+    //     return
+    // }
+
+    // TODO: proper BRK implementation
     fn BRK(&mut self, mode: AddressingMode) {
-        return
+        // Push PC to stack
+        // TODO: I push the low byte first and then high. What does the actual 6502 do?
+        let lo = self.pc as u8;
+        let hi = (self.pc >> 8) as u8;
+        self.push(lo);
+        self.push(hi);
+        // Push SR to stack
+        self.push(self.sr);
+        // Load IRQ interrupt vector at 0xFFFE/F into PC
+        // TODO: 0xFFFE or 0xFFFF?
+        self.pc = self.read(0xFFFE) as u16;
+        // Set break flag to 1
+        self.set_flag(Flags::B, true);
     }
 
     fn BVC(&mut self, mode: AddressingMode) {
@@ -453,7 +535,7 @@ impl CPU {
         let addr: u16 = self.get_address(mode);
         let value: u8 = self.read(addr);
         self.a ^= value;
-        self.set_zero_overflow_flags(self.a);
+        self.set_zero_negative_flags(self.a);
     }
 
     fn INC(&mut self, mode: AddressingMode) {
@@ -485,21 +567,21 @@ impl CPU {
     fn LDA(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
         self.a = self.read(addr);
-        self.set_zero_overflow_flags(self.a);
+        self.set_zero_negative_flags(self.a);
     }
 
     // Load the X register
     fn LDX(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
         self.x = self.read(addr);
-        self.set_zero_overflow_flags(self.x);
+        self.set_zero_negative_flags(self.x);
     }
 
     // Load the Y register
     fn LDY(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
         self.y = self.read(addr);
-        self.set_zero_overflow_flags(self.y);
+        self.set_zero_negative_flags(self.y);
     }
     fn LSR(&mut self, mode: AddressingMode) {}
     fn NOP(&mut self, mode: AddressingMode) {}
@@ -509,20 +591,17 @@ impl CPU {
         let addr: u16 = self.get_address(mode);
         let value: u8 = self.read(addr);
         self.a |= value;
-        self.set_zero_overflow_flags(self.a);
+        self.set_zero_negative_flags(self.a);
     }
 
-    // TODO: Push accumulator to stack
+    // Push accumulator to stack
     fn PHA(&mut self, mode: AddressingMode) {
-        todo!();
+        self.push(self.a);
     }
 
-    // TODO: Push status register to stack
+    // Push status register to stack
     fn PHP(&mut self, mode: AddressingMode) {
-        self.write(0x0100 + (self.sp as u16), self.sr | (Flags::B as u8) | (Flags::U as u8));
-        self.set_flag(Flags::B, false);
-        self.set_flag(Flags::U, false);
-        self.sp -= 1;
+        self.push(self.sr);
     }
     fn PHX(&mut self, mode: AddressingMode) {
         todo!();
@@ -530,8 +609,11 @@ impl CPU {
     fn PHY(&mut self, mode: AddressingMode) {
         todo!();
     }
+
+    // Pull accumulator (from stack)
     fn PLA(&mut self, mode: AddressingMode) {
-        todo!();
+        self.a = self.pop();
+        self.set_zero_negative_flags(self.a);
     }
     fn PLP(&mut self, mode: AddressingMode) {
         todo!();
