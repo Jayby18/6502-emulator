@@ -463,6 +463,7 @@ impl CPU {
     fn BRK(&mut self, mode: AddressingMode) {
         // Push PC to stack
         // TODO: I push the low byte first and then high. What does the actual 6502 do?
+        // NOTE: if I change this, I have to change it for RTI (and other functions that pull PC from stack)
         let lo = self.pc as u8;
         let hi = (self.pc >> 8) as u8;
         self.push(lo);
@@ -498,36 +499,56 @@ impl CPU {
     fn CLV(&mut self, mode: AddressingMode) {
         self.set_flag(Flags::V, false);
     }
+
+    // Compare accumulator to memory value
     fn CMP(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr = self.get_address(mode);
+        let value = self.read(addr);
+        let result = self.a - value;
+        self.set_zero_negative_flags(result);
+        self.set_flag(Flags::C, self.a >= value);
+        self.a = result;
     }
+
+    // Compare X register to memory value
     fn CPX(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr = self.get_address(mode);
+        let value = self.read(addr);
+        let result = self.x - value;
+        self.set_zero_negative_flags(result);
+        self.set_flag(Flags::C, self.x >= value);
+        self.x = result;
     }
+    
+    // Compare Y register to memory value
     fn CPY(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr = self.get_address(mode);
+        let value = self.read(addr);
+        let result = self.y - value;
+        self.set_zero_negative_flags(result);
+        self.set_flag(Flags::C, self.y >= value);
+        self.y = result;
     }
+
+    // Decrement memory
     fn DEC(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr: u16 = self.get_address(mode);
+        let mut value: u8 = self.read(addr);
+        value -= 1;
+        self.write(addr, value);
+        self.set_zero_negative_flags(value);
     }
 
-    // TODO: set zero flag when result is 0, negative flag when negative
+    // Decrement X
     fn DEX(&mut self, mode: AddressingMode) {
-        if self.x == 1 {
-            // X is 1, so decrement will result in 0
-            self.set_flag(Flags::Z, true);
-            self.x -= 1;
-        } else if self.x == 0 {
-            // X is 0, so decrement will result in negative
-            self.set_flag(Flags::N, true);
-            self.x += 1;
-        } else {
-            self.x -= 1;
-        }
+        self.x -= 1;
+        self.set_zero_negative_flags(self.x);
     }
 
+    // Decrement Y
     fn DEY(&mut self, mode: AddressingMode) {
-        todo!();
+        self.y -= 1;
+        self.set_zero_negative_flags(self.y);
     }
 
     // Exclusive OR
@@ -538,27 +559,34 @@ impl CPU {
         self.set_zero_negative_flags(self.a);
     }
 
+    // Increment memory
     fn INC(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr: u16 = self.get_address(mode);
+        let mut value: u8 = self.read(addr);
+        value += 1;
+        self.write(addr, value);
+        self.set_zero_negative_flags(value);
     }
 
+    // Increment X
     fn INX(&mut self, mode: AddressingMode) {
         self.x += 1;
-        self.set_flag(Flags::Z, self.x == 0x00);
-        self.set_flag(Flags::N, (self.x & 0x80) ==  0x80);
+        self.set_zero_negative_flags(self.x);
     }
 
+    // Increment Y
     fn INY(&mut self, mode: AddressingMode) {
         self.y += 1;
-        self.set_flag(Flags::Z, self.y == 0x80);
-        self.set_flag(Flags::N, (self.y & 0x80) == 0x80);
+        self.set_zero_negative_flags(self.y);
     }
 
+    // Jump
     fn JMP(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
         self.pc = addr;
     }
 
+    // TODO: jump to subroutine
     fn JSR(&mut self, mode: AddressingMode) {
         todo!();
     }
@@ -583,7 +611,13 @@ impl CPU {
         self.y = self.read(addr);
         self.set_zero_negative_flags(self.y);
     }
-    fn LSR(&mut self, mode: AddressingMode) {}
+
+    // TODO: Logical shift right
+    fn LSR(&mut self, mode: AddressingMode) {
+        todo!();
+    }
+
+    // No operation
     fn NOP(&mut self, mode: AddressingMode) {}
 
     // Inclusive OR
@@ -603,59 +637,59 @@ impl CPU {
     fn PHP(&mut self, mode: AddressingMode) {
         self.push(self.sr);
     }
-    fn PHX(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn PHY(&mut self, mode: AddressingMode) {
-        todo!();
-    }
 
     // Pull accumulator (from stack)
     fn PLA(&mut self, mode: AddressingMode) {
         self.a = self.pop();
         self.set_zero_negative_flags(self.a);
     }
+
+    // Pull processor status
     fn PLP(&mut self, mode: AddressingMode) {
-        todo!();
+        self.sr = self.pop();
     }
-    fn PLX(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn PLY(&mut self, mode: AddressingMode) {
-        todo!();
-    }
-    fn RMB(&mut self, mode: AddressingMode) {
-        todo!();
-    }
+
     fn ROL(&mut self, mode: AddressingMode) {
         todo!();
     }
     fn ROR(&mut self, mode: AddressingMode) {
         todo!();
     }
+
+    // Return from interrupt
     fn RTI(&mut self, mode: AddressingMode) {
-        todo!();
+        self.sr = self.pop();
+        let hi = self.pop() as u16;
+        let lo = self.pop() as u16;
+        self.pc = (hi << 8) | lo;
     }
+
+    // Return from subroutine
     fn RTS(&mut self, mode: AddressingMode) {
-        todo!();
+        let hi = self.pop() as u16;
+        let lo = self.pop() as u16;
+        self.pc = (hi << 8) | lo;
+        self.pc -= 1;
     }
+
+    // TODO: Subtract with carry
     fn SBC(&mut self, mode: AddressingMode) {
         todo!();
     }
+
     // Set carry flag to 1
     fn SEC(&mut self, mode: AddressingMode) {
         self.set_flag(Flags::C, true);
     }
+
     // Set decimal flag to 1
     fn SED(&mut self, mode: AddressingMode) {
         self.set_flag(Flags::D, true);
     }
+
     // Set interrupt disable flag to 1
     fn SEI(&mut self, mode: AddressingMode) {
         self.set_flag(Flags::I, true);
-    }
-    fn SMB(&mut self, mode: AddressingMode) {
-        todo!();
     }
 
     // Store accumulator
@@ -676,33 +710,28 @@ impl CPU {
         self.write(addr, self.y);
     }
 
-    // TODO: set Z and N flags in transfer functions
     // Transfer accumulator to X register
     fn TAX(&mut self, mode: AddressingMode) {
         self.x = self.a;
+        self.set_zero_negative_flags(self.x);
     }
 
     // Transfer accumulator to Y register
     fn TAY(&mut self, mode: AddressingMode) {
         self.y = self.a;
-    }
-
-    fn TRB(&mut self, mode: AddressingMode) {
-        todo!();
+        self.set_zero_negative_flags(self.y);
     }
 
     // Transfer stack pointer to X register
     fn TSX(&mut self, mode: AddressingMode) {
         self.x = self.sp;
-    }
-
-    fn TSB(&mut self, mode: AddressingMode) {
-        todo!();
+        self.set_zero_negative_flags(self.x);
     }
 
     // Transfer X register to accumulator
     fn TXA(&mut self, mode: AddressingMode) {
         self.a = self.x;
+        self.set_zero_negative_flags(self.a);
     }
 
     // Transfer X register to stack pointer
@@ -713,6 +742,7 @@ impl CPU {
     // Transfer Y register to accumulator
     fn TYA(&mut self, mode: AddressingMode) {
         self.a = self.y;
+        self.set_zero_negative_flags(self.a);
     }
 
     // When an illegal opcode is passed, XXX() is run
