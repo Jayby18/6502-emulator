@@ -483,6 +483,34 @@ mod test {
     //     }
     // }
 
+    #[test]
+    fn test_jmp_abs() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+        cpu.write(0x3000, 0xA9);
+        cpu.write(0x3001, 0x04);
+        cpu.write(0x3002, 0x00);
+
+        // LDA 0x02, JMP to 0x3000. Then LDA 0x04 and BRK.
+        cpu.quick_start(vec![0xA9, 0x02, 0x4C, 0x00, 0x30]);
+        assert_eq!(cpu.get_a(), 0x04);
+    }
+
+    #[test]
+    fn test_jmp_ind() {
+        let bus: Bus = Bus::new();
+        let mut cpu: CPU = CPU::new(bus);
+        cpu.write(0x1234, 0x30);
+        cpu.write(0x1235, 0x24);
+        cpu.write(0x2430, 0xA9);
+        cpu.write(0x2431, 0x04);
+        cpu.write(0x2432, 0x00);
+
+        // LDA 0x02, JMP to pointer specified by 0x1234 (so to 0x2430). Then LDA 0x04 and BRK.
+        cpu.quick_start(vec![0xA9, 0x02, 0x6C, 0x34, 0x12]);
+        assert_eq!(cpu.get_a(), 0x04);
+    }
+
     // TODO: test ASL with different mode
 
     // TODO: test all addressing modes (should be relatively simple, though, might not be necessary)

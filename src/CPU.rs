@@ -253,7 +253,15 @@ impl CPU {
                 self.pc += 2;
                 return addr;
             },
-            AddressingMode::IND => todo!(),
+            AddressingMode::IND => {
+                let addr = self.read_u16(self.pc);
+                self.pc += 2;
+
+                let ptr = self.read_u16(addr);
+                self.pc += 2;
+
+                return ptr;
+            },
             AddressingMode::IDX => {
                 let base = self.read(self.pc);
 
@@ -433,7 +441,7 @@ impl CPU {
 
     fn JMP(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
-        self.pc = self.read_u16(addr);
+        self.pc = addr;
     }
 
     fn JSR(&mut self, mode: AddressingMode) {
