@@ -408,8 +408,16 @@ impl CPU {
         }
     }
 
+    // Bit test
     fn BIT(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr: u16 = self.get_address(mode);
+        let value: u8 = self.read(addr);
+
+        let result = self.a & value;
+
+        self.set_flag(Flags::Z, result == 0x00);
+        self.set_flag(Flags::V, (value & 0x40) == 0x40);
+        self.set_flag(Flags::N, (value & 0x80) == 0x80);
     }
 
     // Branch if minus (negative flag set)
@@ -477,24 +485,49 @@ impl CPU {
         self.set_flag(Flags::B, true);
     }
 
+    // Branch if overflow clear
     fn BVC(&mut self, mode: AddressingMode) {
-        todo!();
+        if !self.get_flag(Flags::V) {
+            let offset = self.read(self.pc);
+            if offset >= 128 {
+                // offset is negative
+                self.pc -= ((!offset) + 1) as u16;
+            } else {
+                // offset is positive
+                self.pc += offset as u16;
+            }
+        }
     }
+
+    // Branch if overflow set
     fn BVS(&mut self, mode: AddressingMode) {
-        todo!();
+        if self.get_flag(Flags::V) {
+            let offset = self.read(self.pc);
+            if offset >= 128 {
+                // offset is negative
+                self.pc -= ((!offset) + 1) as u16;
+            } else {
+                // offset is positive
+                self.pc += offset as u16;
+            }
+        }
     }
+
     // Clear the carry flag to zero
     fn CLC(&mut self, mode: AddressingMode) {
         self.set_flag(Flags::C, false);
     }
+
     // Clear decimal mode flag to zero
     fn CLD(&mut self, mode: AddressingMode) {
         self.set_flag(Flags::D, false);
     }
+
     // Clear interrupt disable flag to zero
     fn CLI(&mut self, mode: AddressingMode) {
         self.set_flag(Flags::I, false);
     }
+
     // Clear overflow flag to zero
     fn CLV(&mut self, mode: AddressingMode) {
         self.set_flag(Flags::V, false);
@@ -519,7 +552,7 @@ impl CPU {
         self.set_flag(Flags::C, self.x >= value);
         self.x = result;
     }
-    
+
     // Compare Y register to memory value
     fn CPY(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
