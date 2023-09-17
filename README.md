@@ -18,28 +18,28 @@
     - [x] ADC
     - [x] AND
     - [ ] ASL
-    - [ ] BCC
-    - [ ] BCS
-    - [ ] BEQ
-    - [ ] BIT
-    - [ ] BMI
-    - [ ] BNE
-    - [ ] BPL
+    - [x] BCC
+    - [x] BCS
+    - [x] BEQ
+    - [x] BIT
+    - [x] BMI
+    - [x] BNE
+    - [x] BPL
     - [x] BRK
-    - [ ] BVC
-    - [ ] BVS
+    - [x] BVC
+    - [x] BVS
     - [x] CLC
     - [x] CLD
     - [x] CLI
     - [x] CLV
-    - [ ] CMP
-    - [ ] CPX
-    - [ ] CPY
-    - [ ] DEC
-    - [ ] DEX
-    - [ ] DEY
+    - [x] CMP
+    - [x] CPX
+    - [x] CPY
+    - [x] DEC
+    - [x] DEX
+    - [x] DEY
     - [x] EOR
-    - [ ] INC
+    - [x] INC
     - [x] INX
     - [x] INY
     - [x] JMP
@@ -48,29 +48,29 @@
     - [x] LDX
     - [x] LDY
     - [ ] LSR
-    - [ ] NOP
+    - [x] NOP
     - [x] ORA
-    - [ ] PHA
-    - [ ] PHP
-    - [ ] PLA
-    - [ ] PLP
+    - [x] PHA
+    - [x] PHP
+    - [x] PLA
+    - [x] PLP
     - [ ] ROL
     - [ ] ROR
-    - [ ] RTI
-    - [ ] RTS
-    - [ ] SBC
+    - [x] RTI
+    - [x] RTS
+    - [x] SBC
     - [x] SEC
     - [x] SED
     - [x] SEI
     - [x] STA
     - [x] STX
     - [x] STY
-    - [ ] TAX
-    - [ ] TAY
-    - [ ] TSX
-    - [ ] TXA
-    - [ ] TXS
-    - [ ] TYA
+    - [x] TAX
+    - [x] TAY
+    - [x] TSX
+    - [x] TXA
+    - [x] TXS
+    - [x] TYA
     - [x] XXX
 - [ ] Test all instructions
 - [ ] Count cycles
