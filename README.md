@@ -10,7 +10,68 @@
 
 - [x] Implement all addressing modes
 - [ ] Test all addressing modes
+    - [ ] IMP
+    - [ ] REL
+    - [ ] ACC
+    - [x] all others
 - [ ] Implement all instructions (DOING)
+    - [x] ADC
+    - [x] AND
+    - [ ] ASL
+    - [ ] BCC
+    - [ ] BCS
+    - [ ] BEQ
+    - [ ] BIT
+    - [ ] BMI
+    - [ ] BNE
+    - [ ] BPL
+    - [x] BRK
+    - [ ] BVC
+    - [ ] BVS
+    - [ ] CLC
+    - [ ] CLD
+    - [ ] CLI
+    - [ ] CLV
+    - [ ] CMP
+    - [ ] CPX
+    - [ ] CPY
+    - [ ] DEC
+    - [ ] DEX
+    - [ ] DEY
+    - [x] EOR
+    - [ ] INC
+    - [x] INX
+    - [x] INY
+    - [x] JMP
+    - [ ] JSR
+    - [x] LDA
+    - [x] LDX
+    - [x] LDY
+    - [ ] LSR
+    - [ ] NOP
+    - [x] ORA
+    - [ ] PHA
+    - [ ] PHP
+    - [ ] PLA
+    - [ ] PLP
+    - [ ] ROL
+    - [ ] ROR
+    - [ ] RTI
+    - [ ] RTS
+    - [ ] SBC
+    - [ ] SEC
+    - [ ] SED
+    - [ ] SEI
+    - [ ] STA
+    - [ ] STX
+    - [ ] STY
+    - [ ] TAX
+    - [ ] TAY
+    - [ ] TSX
+    - [ ] TXA
+    - [ ] TXS
+    - [ ] TYA
+    - [x] XXX
 - [ ] Test all instructions
 
 ### Frontend
