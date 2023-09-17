@@ -297,8 +297,135 @@ fn main() -> Result<(), io::Error> {
 mod test {
     use super::*;
 
+    // TODO: Test all addressing modes
+    use cpu::AddressingMode;
+
     #[test]
-    fn test_lda_imm_flags() {
+    fn imm() {
+        let foo: u16 = 0x5931;
+        let mut cpu: CPU = CPU::custom(0, 0, 0, 0, foo, 0, 0, Bus::new());
+        assert_eq!(cpu.get_address(AddressingMode::IMM), foo);
+    }
+
+    #[test]
+    fn zp0() {
+        let foo: u8 = 0x72;
+        let bar: u8 = 0xF3;
+        let mut cpu: CPU = CPU::custom(0, 0, 0, 0, foo as u16, 0, 0, Bus::new());
+        cpu.write(foo as u16, bar);
+        assert_eq!(cpu.get_address(AddressingMode::ZP0), bar as u16);
+    }
+
+    #[test]
+    fn zpx() {
+        let foo: u8 = 0x72;
+        let bar: u8 = 0x2C;
+        let x: u8 = 0x1B;
+        let mut cpu: CPU = CPU::custom(0, x, 0, 0, foo as u16, 0, 0, Bus::new());
+        cpu.write(foo as u16, bar);
+        assert_eq!(cpu.get_address(AddressingMode::ZPX), (bar + x) as u16);
+    }
+
+    #[test]
+    fn zpy() {
+        let foo: u8 = 0x72;
+        let bar: u8 = 0x2C;
+        let y: u8 = 0x1B;
+        let mut cpu: CPU = CPU::custom(0, 0, y, 0, foo as u16, 0, 0, Bus::new());
+        cpu.write(foo as u16, bar);
+        assert_eq!(cpu.get_address(AddressingMode::ZPY), (bar + y) as u16);
+    }
+
+    #[test]
+    fn abs() {
+        let foo: u16 = 0x1234;
+        let bar: u16 = 0x5621;
+        let mut cpu: CPU = CPU::custom(0, 0, 0, 0, foo, 0, 0, Bus::new());
+        cpu.write(foo, 0x21);
+        cpu.write(foo + 1, 0x56);
+        assert_eq!(cpu.get_address(AddressingMode::ABS), bar);
+    }
+
+    #[test]
+    fn abx() {
+        let foo: u16 = 0x1234;
+        let bar: u16 = 0x5621;
+        let x: u8 = 0x2F;
+        let mut cpu: CPU = CPU::custom(0, x, 0, 0, foo, 0, 0, Bus::new());
+        cpu.write(foo, 0x21);
+        cpu.write(foo + 1, 0x56);
+        assert_eq!(cpu.get_address(AddressingMode::ABX), bar + x as u16);
+    }
+
+    #[test]
+    fn aby() {
+        let foo: u16 = 0x1234;
+        let bar: u16 = 0x5621;
+        let y: u8 = 0x2F;
+        let mut cpu: CPU = CPU::custom(0, 0, y, 0, foo, 0, 0, Bus::new());
+        cpu.write(foo, 0x21);
+        cpu.write(foo + 1, 0x56);
+        assert_eq!(cpu.get_address(AddressingMode::ABY), bar + y as u16);
+    }
+
+    #[test]
+    fn ind() {
+        let pc: u16 = 0x0301;
+        let ptr: u16 = 0x4230;
+        let addr: u16 = 0x04A9;
+        let mut cpu: CPU = CPU::custom(0, 0, 0, 0, pc, 0, 0, Bus::new());
+        cpu.write(pc, 0x30);
+        cpu.write(pc + 1, 0x42);
+        cpu.write(ptr, 0xA9);
+        cpu.write(ptr + 1, 0x04);
+        assert_eq!(cpu.get_address(AddressingMode::IND), addr);
+    }
+
+    #[test]
+    fn idx() {
+        let pc: u16 = 0x0301;
+        let x: u8 = 0x02;
+        let base: u8 = 0x30;
+        let ptr: u8 = base + x;
+        let lo: u8 = 0x91;
+        let hi: u8 = 0xEF;
+        let addr: u16 = (hi as u16) << 8 | (lo as u16);
+        let mut cpu: CPU = CPU::custom(0, x, 0, 0, pc as u16, 0, 0, Bus::new());
+        cpu.write(pc, base);
+        cpu.write(ptr as u16, lo);
+        cpu.write(ptr as u16 + 1, hi);
+        assert_eq!(cpu.get_address(AddressingMode::IDX), addr as u16);
+    }
+
+    #[test]
+    fn idy() {
+        let pc: u16 = 0x0301;
+        let y: u8 = 0x02;
+        let zp_addr: u8 = 0x30;
+        let base: u8 = 0x91;
+        let ptr: u8 = base + y;
+        let addr: u8 = 0x00EF;
+        let mut cpu: CPU = CPU::custom(0, 0, y, 0, pc, 0, 0, Bus::new());
+        cpu.write(pc, zp_addr);
+        cpu.write(zp_addr as u16, base);
+        cpu.write(ptr as u16, addr);
+        assert_eq!(cpu.get_address(AddressingMode::IDY), addr as u16);
+    }
+
+    #[test]
+    fn rel() {
+        
+    }
+
+    #[test]
+    fn acc() {
+        // Instructions with this addressing mode operate directly on the accumulator, so no address is needed.
+        // TODO: how do I test this then?
+    }
+
+    // TODO: Test all instructions
+    #[test]
+    fn lda_imm_flags() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
         cpu.quick_start(vec![0xA9, 0x05, 0x00]);
@@ -309,7 +436,7 @@ mod test {
     }
 
     #[test]
-    fn test_lda_imm_zero_flag() {
+    fn lda_imm_zero_flag() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
         cpu.quick_start(vec![0xA9, 0x00, 0x00]);
@@ -318,7 +445,7 @@ mod test {
     }
 
     #[test]
-    fn test_lda_zp0() {
+    fn lda_zp0() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
         // write 0x55 to address 0x10
@@ -330,7 +457,7 @@ mod test {
     }
 
     #[test]
-    fn test_add_to_a() {
+    fn add_to_a() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
 
@@ -373,7 +500,7 @@ mod test {
     }
 
     #[test]
-    fn test_adc_imm() {
+    fn adc_imm() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
 
@@ -412,7 +539,7 @@ mod test {
     }
 
     #[test]
-    fn test_and_imm() {
+    fn and_imm() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
         // LDA(IMM) with 0x6b, AND(IMM) with 0x2c
@@ -423,7 +550,7 @@ mod test {
 
     // write number to memory, lda immediate, ldx immediate, then adc with zpx
     #[test]
-    fn test_adc_zpx() {
+    fn adc_zpx() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
         cpu.write(0x00F1, 0x27);
@@ -433,7 +560,7 @@ mod test {
     }
 
     #[test]
-    fn test_asl_acc() {
+    fn asl_acc() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
 
@@ -482,9 +609,11 @@ mod test {
     //         assert_eq!(cpu.read(0x3B), 0b0101_0000);
     //     }
     // }
+    
+    // TODO: test ASL with different mode(s)
 
     #[test]
-    fn test_jmp_abs() {
+    fn mp_abs() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
         cpu.write(0x3000, 0xA9);
@@ -497,7 +626,7 @@ mod test {
     }
 
     #[test]
-    fn test_jmp_ind() {
+    fn jmp_ind() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
         cpu.write(0x1234, 0x30);
@@ -509,20 +638,5 @@ mod test {
         // LDA 0x02, JMP to pointer specified by 0x1234 (so to 0x2430). Then LDA 0x04 and BRK.
         cpu.quick_start(vec![0xA9, 0x02, 0x6C, 0x34, 0x12]);
         assert_eq!(cpu.get_a(), 0x04);
-    }
-
-    // TODO: test ASL with different mode
-
-    // TODO: test all addressing modes (should be relatively simple, though, might not be necessary)
-    // #[test]
-    // fn test_addressing_modes() {
-    //     let bus: Bus = Bus::new();
-    //     let mut cpu: CPU = CPU::new(bus);
-    //     use cpu::AddressingMode;
-    //     assert_eq!(cpu.get_address(AddressingMode::IMM), cpu.get_pc() - 1);
-    // }
-
-    // TODO: test all (?) instructions
-
-    // TODO: test all opcodes (or is it too much?)
+    }    
 }

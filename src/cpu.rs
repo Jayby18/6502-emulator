@@ -253,34 +253,50 @@ impl CPU {
                 self.pc += 2;
                 return addr;
             },
+            // Indirect (IND) addressing: the program is supplied with a pointer.
+            // The value that it reads there is the address that holds the operand.
+            // 
+            // E.g. PC is 0x0301. 0x0301 (+1) stores pointer 0x4230. Pointer 0x4230 (+1) stores address 0x04A9.
+            // Returns address 0x04A9 because operand is there.
             AddressingMode::IND => {
-                let addr = self.read_u16(self.pc);
+                let ptr = self.read_u16(self.pc);
                 self.pc += 2;
 
-                let ptr = self.read_u16(addr);
+                let addr = self.read_u16(ptr);
                 self.pc += 2;
 
-                return ptr;
+                return addr;
             },
+            // Indexed indirect addressing: the program is supplied with a zero-page pointer.
+            // The X register is added to that pointer. This points to the address that holds the operand.
+            // 
+            // E.g. PC is 0x0301, X is 0x02. PC stores base 0x30. Pointer = 0x30 + 0x02 = 0x0032. This stores 0x91.
+            // 0x0033 stores 0xEF. So this returns address 0xEF91 (operand is stored there).
             AddressingMode::IDX => {
                 let base = self.read(self.pc);
 
-                let ptr: u8 = (base as u8).wrapping_add(self.x);
+                let ptr = base + self.x;
                 let lo = self.read(ptr as u16);
-                let hi = self.read(ptr.wrapping_add(1) as u16);
+                let hi = self.read((ptr + 1) as u16);
 
                 self.pc += 2;
                 return (hi as u16) << 8 | (lo as u16);
             },
+            // Indirect indexed addressing: the program is supplied with a zero-page address.
+            // The value that it reads there + the Y register, is a pointer to the address that holds the operand.
+            // 
+            // E.g. PC is 0x0301, Y is 0x02. PC stores 0x30. Pointer 0x0030 stores 0x91. Address = 0x91 + 0x02 = 0x93.
+            // Returns address 0x0093 because operand is there.
             AddressingMode::IDY => {
-                let base = self.read(self.pc);
+                let zp_addr = self.read(self.pc);
+                let base = self.read(zp_addr as u16);
 
-                let ptr: u8 = (base as u8).wrapping_add(self.y);
+                let ptr = base + self.y;
+
                 let lo = self.read(ptr as u16);
-                let hi = self.read(ptr.wrapping_add(1) as u16);
 
                 self.pc += 2;
-                return (hi as u16) << 8 | (lo as u16);
+                return lo as u16;
             },
             AddressingMode::REL => todo!(),
             AddressingMode::ACC => todo!(),
@@ -699,5 +715,21 @@ impl CPU {
 
     pub fn get_memory(&self) -> [u8; 64 * 1024] {
         self.bus.get_ram()
+    }
+
+    // Instructor with custom values
+    pub fn custom(a: u8, x: u8, y: u8, sp: u8, pc: u16, sr: u8, opcode: u8, bus: Bus,) -> Self {
+        let cpu = CPU {
+            a,
+            x,
+            y,
+            sp,
+            pc,
+            sr,
+            opcode,
+            bus,
+        };
+
+        return cpu;
     }
 }
