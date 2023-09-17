@@ -39,8 +39,13 @@ fn main() -> Result<(), io::Error> {
     // Init bus and CPU
     let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::new(bus);
-    cpu.write(0x00F1, 0x27);
-    cpu.load_program(vec![0xA9, 0xA5, 0x69, 0x37, 0x29, 0xF0, 0x0A, 0xA9, 0x5A, 0x69, 0xC3, 0x29, 0x0F, 0x0A, 0xA9, 0x12, 0x69, 0x34, 0x29, 0xAA, 0x0A, 0x00]);
+    // cpu.write(0x00F1, 0x27);
+    // cpu.load_program(vec![0xA9, 0xA5, 0x69, 0x37, 0x29, 0xF0, 0x0A, 0xA9, 0x5A, 0x69, 0xC3, 0x29, 0x0F, 0x0A, 0xA9, 0x12, 0x69, 0x34, 0x29, 0xAA, 0x0A, 0x00]);
+    
+    cpu.write(0x05D5, 0xA9);
+    cpu.write(0x05D6, 0xFF);
+    cpu.quick_start(vec![0xA9, 0x2A, 0x29, 0xC0, 0xF0, 0xD0, 0xA9, 0xAF]);
+    
     cpu.reset();
 
     // Set up terminal
@@ -429,7 +434,7 @@ mod test {
         let mut cpu: CPU = CPU::new(bus);
         cpu.quick_start(vec![0xA9, 0x05, 0x00]);
 
-        assert_eq!(cpu.get_a_reg(), 0x05);
+        assert_eq!(cpu.get_a(), 0x05);
         assert!(!cpu.get_flag(Flags::Z));
         assert!(!cpu.get_flag(Flags::N));
     }
@@ -452,7 +457,7 @@ mod test {
         // LDA from address 0x10
         cpu.quick_start(vec![0xA5, 0x10, 0x00]);
 
-        assert_eq!(cpu.get_a_reg(), 0x55);
+        assert_eq!(cpu.get_a(), 0x55);
     }
 
     #[test]
@@ -462,19 +467,19 @@ mod test {
 
         {   // no carry, no overflow
             // println!("\nNo carry, no overflow");
-            cpu.set_a_reg(0x0A);
+            cpu.set_a(0x0A);
             cpu.add_to_a(0x10);
-            // println!("{}", cpu.get_a_reg());
-            assert_eq!(cpu.get_a_reg(), 0x1A);
+            // println!("{}", cpu.get_a());
+            assert_eq!(cpu.get_a(), 0x1A);
             assert!(!cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::V));
         }
 
         {   // no carry -> carry, no overflow
             // println!("\nNo carry -> carry, no overflow");
-            cpu.set_a_reg(0xFF);
+            cpu.set_a(0xFF);
             cpu.add_to_a(0x01);
-            assert_eq!(cpu.get_a_reg(), 0);
+            assert_eq!(cpu.get_a(), 0);
             assert!(cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::V));
         }
@@ -482,18 +487,18 @@ mod test {
         {   // carry -> no carry, no overflow
             // println!("\nCarry -> no carry, no overflow");
             cpu.set_flag(Flags::C, true);
-            cpu.set_a_reg(0x0A);
+            cpu.set_a(0x0A);
             cpu.add_to_a(0x10);
-            assert_eq!(cpu.get_a_reg(), 0x1A + 0x01);
+            assert_eq!(cpu.get_a(), 0x1A + 0x01);
             assert!(!cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::V));
         }
 
         {   // no carry, no overflow -> overflow
             // println!("\nNo carry, no overflow -> overflow");
-            cpu.set_a_reg(0x7F);
+            cpu.set_a(0x7F);
             cpu.add_to_a(0x04);
-            assert_eq!(cpu.get_a_reg(), 0x83);
+            assert_eq!(cpu.get_a(), 0x83);
             assert!(cpu.get_flag(Flags::V));
         }
     }
@@ -506,7 +511,7 @@ mod test {
         // No carry -> no carry
         {
             cpu.quick_start(vec![0xA9, 0x10, 0x69, 0x02, 0x00]);
-            assert_eq!(cpu.get_a_reg(), 0x12);
+            assert_eq!(cpu.get_a(), 0x12);
             assert!(!cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::V));
         }
@@ -516,7 +521,7 @@ mod test {
             // TODO: how to verify carry?
             cpu.set_flag(Flags::C, true);
             cpu.quick_start(vec![0xA9, 0x10, 0x69, 0x02, 0x00]);
-            assert_eq!(cpu.get_a_reg(), 0x12);
+            assert_eq!(cpu.get_a(), 0x12);
             assert!(!cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::V));
         }
@@ -524,7 +529,7 @@ mod test {
         // No carry -> carry
         {
             cpu.quick_start(vec![0xA9, 0xFE, 0x69, 0x03, 0x00]);
-            assert_eq!(cpu.get_a_reg(), 0x01);
+            assert_eq!(cpu.get_a(), 0x01);
             assert!(cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::V));
         }
@@ -544,7 +549,16 @@ mod test {
         // LDA(IMM) with 0x6b, AND(IMM) with 0x2c
         cpu.quick_start(vec![0xA9, 0x6b, 0x29, 0x2c, 0x00]);
 
-        assert_eq!(cpu.get_a_reg(), 0x28);
+        assert_eq!(cpu.get_a(), 0x28);
+    }
+
+    #[test]
+    fn and_imm_zero() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        // LDA 0x6B, AND 0x14, BRK
+        cpu.quick_start(vec![0xA9, 0x6B, 0x29, 0x14, 0x00]);
+        assert!(cpu.get_flag(Flags::Z));
+        assert_eq!(cpu.get_a(), 0x00);
     }
 
     // write number to memory, lda immediate, ldx immediate, then adc with zpx
@@ -555,7 +569,7 @@ mod test {
         cpu.write(0x00F1, 0x27);
         cpu.quick_start(vec![0xA9, 0x03, 0xA2, 0x10, 0x75, 0xE1, 0x00]);
 
-        assert_eq!(cpu.get_a_reg(), 0x2A);
+        assert_eq!(cpu.get_a(), 0x2A);
     }
 
     #[test]
@@ -565,7 +579,7 @@ mod test {
 
         {
             cpu.quick_start(vec![0xA9, 0b0010_1000, 0x0A, 0x00]);
-            assert_eq!(cpu.get_a_reg(), 0b0101_0000);
+            assert_eq!(cpu.get_a(), 0b0101_0000);
             assert!(!cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::N));
             assert!(!cpu.get_flag(Flags::Z));
@@ -573,14 +587,14 @@ mod test {
 
         {
             cpu.quick_start(vec![0xA9, 0b1010_0000, 0x0A, 0x00]);
-            assert_eq!(cpu.get_a_reg(), 0b0100_0000);
+            assert_eq!(cpu.get_a(), 0b0100_0000);
             assert!(cpu.get_flag(Flags::C));
-            // println!("A: {}", cpu.get_a_reg());
+            // println!("A: {}", cpu.get_a());
         }
 
         {
             cpu.quick_start(vec![0xA9, 0b1000_0000, 0x0A, 0x00]);
-            assert_eq!(cpu.get_a_reg(), 0x00);
+            assert_eq!(cpu.get_a(), 0x00);
             assert!(cpu.get_flag(Flags::C));
             assert!(cpu.get_flag(Flags::Z));
             assert!(!cpu.get_flag(Flags::N));
@@ -588,15 +602,41 @@ mod test {
 
         {
             cpu.quick_start(vec![0xA9, 0b0100_0000, 0x0A, 0x00]);
-            assert_eq!(cpu.get_a_reg(), 0b1000_0000);
+            assert_eq!(cpu.get_a(), 0b1000_0000);
             assert!(cpu.get_flag(Flags::N));
             assert!(!cpu.get_flag(Flags::Z));
             assert!(!cpu.get_flag(Flags::C));
         }
     }
 
+    // TODO: test BEQ
     #[test]
-    fn clc() {
+    fn beq_rel_pos() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        // LDA 0xA9, AND 0xC0, BEQ -> LDA 0xFF, BRK if no zero flag (A would remain 0xA9)
+        cpu.quick_start(vec![0xA9, 0x2A, 0x29, 0xC0, 0xF0, 0x03, 0x00, 0x00, 0xA9, 0xFF, 0x00]);
+        assert!(!cpu.get_flag(Flags::Z));
+        assert_eq!(cpu.get_a(), 0xFF);
+    }
+
+    #[test]
+    fn beq_rel_neg() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        cpu.write(0x05D5, 0xA9);
+        cpu.write(0x05D6, 0xFF);
+        // LDA 0xA9, AND 0xC0, BEQ -> LDA 0xFF, LDA 0xAF if no zero flag
+        cpu.quick_start(vec![0xA9, 0x2A, 0x29, 0xC0, 0xF0, 0xD0, 0xA9, 0xAF]);
+        assert_eq!(cpu.get_a(), 0xFF);
+    }
+
+    // TODO: test what happens if underflow occurs
+    // #[test]
+    // fn beq_rel_under() {
+
+    // }
+
+    #[test]
+    fn clc_imp() {
         let mut cpu: CPU = CPU::new(Bus::new());
         assert!(!cpu.get_flag(Flags::C));
         cpu.set_flag(Flags::C, true);
@@ -606,7 +646,7 @@ mod test {
     }
 
     #[test]
-    fn cld() {
+    fn cld_imp() {
         let mut cpu: CPU = CPU::new(Bus::new());
         assert!(!cpu.get_flag(Flags::D));
         cpu.set_flag(Flags::D, true);
@@ -616,7 +656,7 @@ mod test {
     }
 
     #[test]
-    fn cli() {
+    fn cli_imp() {
         let mut cpu: CPU = CPU::new(Bus::new());
         assert!(!cpu.get_flag(Flags::I));
         cpu.set_flag(Flags::I, true);
@@ -626,7 +666,7 @@ mod test {
     }
 
     #[test]
-    fn clv() {
+    fn clv_imp() {
         let mut cpu: CPU = CPU::new(Bus::new());
         assert!(!cpu.get_flag(Flags::V));
         cpu.set_flag(Flags::V, true);
@@ -679,7 +719,7 @@ mod test {
     }
 
     #[test]
-    fn sec() {
+    fn sec_imp() {
         let mut cpu: CPU = CPU::new(Bus::new());
         assert!(!cpu.get_flag(Flags::C));
         cpu.quick_start(vec![0x38, 0x00]);
@@ -687,7 +727,7 @@ mod test {
     }
 
     #[test]
-    fn sed() {
+    fn sed_imp() {
         let mut cpu: CPU = CPU::new(Bus::new());
         assert!(!cpu.get_flag(Flags::D));
         cpu.quick_start(vec![0xF8, 0x00]);
@@ -695,10 +735,17 @@ mod test {
     }
 
     #[test]
-    fn sei() {
+    fn sei_imp() {
         let mut cpu: CPU = CPU::new(Bus::new());
         assert!(!cpu.get_flag(Flags::I));
         cpu.quick_start(vec![0x78, 0x00]);
         assert!(cpu.get_flag(Flags::I));
+    }
+
+    #[test]
+    fn sta_zp0() {
+        let mut cpu: CPU = CPU::new(Bus::new());
+        cpu.quick_start(vec![0xA9, 0xFF, 0x85, 0xAB]);
+        assert_eq!(cpu.read(0xAB), 0xFF);
     }
 }
