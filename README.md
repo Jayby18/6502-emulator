@@ -29,9 +29,9 @@
     - [ ] BVC
     - [ ] BVS
     - [x] CLC
-    - [ ] CLD
-    - [ ] CLI
-    - [ ] CLV
+    - [x] CLD
+    - [x] CLI
+    - [x] CLV
     - [ ] CMP
     - [ ] CPX
     - [ ] CPY
@@ -59,12 +59,12 @@
     - [ ] RTI
     - [ ] RTS
     - [ ] SBC
-    - [ ] SEC
-    - [ ] SED
-    - [ ] SEI
-    - [ ] STA
-    - [ ] STX
-    - [ ] STY
+    - [x] SEC
+    - [x] SED
+    - [x] SEI
+    - [x] STA
+    - [x] STX
+    - [x] STY
     - [ ] TAX
     - [ ] TAY
     - [ ] TSX
