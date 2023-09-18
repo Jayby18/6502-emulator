@@ -53,11 +53,24 @@ impl CPU {
         self.write(0x0100 + (self.sp as u16), data);
     }
 
+    pub fn push_u16(&mut self, data: u16) {
+        let lo = data as u8;
+        let hi = (data >> 8) as u8;
+        self.push(lo);
+        self.push(hi);
+    }
+
     // Pop off stack
     pub fn pop(&mut self) -> u8 {
         let data = self.read(0x0100 + (self.sp as u16));
         self.sp += 1;
-        return data;
+        data
+    }
+
+    pub fn pop_u16(&mut self) -> u16 {
+        let lo = self.pop() as u16;
+        let hi = self.pop() as u16;
+        (hi << 8) | lo
     }
 
     // Flags
@@ -93,7 +106,7 @@ impl CPU {
     pub fn add_to_a(&mut self, value: u8) {
         // println!("Adding {} to A", value);
         // Sum accumulator, value and carry
-        let sum: u16 = self.a as u16 + value as u16 + if self.get_flag(Flags::C) { 1 } else { 0 } ;
+        let sum: u16 = self.a as u16 + value as u16 + (self.sr & 0x01) as u16;
         // println!("Sum: {}", sum);
 
         // Set carry flag
@@ -470,12 +483,7 @@ impl CPU {
     // TODO: proper BRK implementation
     fn BRK(&mut self, mode: AddressingMode) {
         // Push PC to stack
-        // TODO: I push the low byte first and then high. What does the actual 6502 do?
-        // NOTE: if I change this, I have to change it for RTI (and other functions that pull PC from stack)
-        let lo = self.pc as u8;
-        let hi = (self.pc >> 8) as u8;
-        self.push(lo);
-        self.push(hi);
+        self.push_u16(self.pc);
         // Push SR to stack
         self.push(self.sr);
         // Load IRQ interrupt vector at 0xFFFE/F into PC
@@ -616,12 +624,16 @@ impl CPU {
     // Jump
     fn JMP(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
-        self.pc = addr;
+        let ptr = self.read_u16(addr);
+        self.pc = ptr;
     }
 
     // TODO: jump to subroutine
     fn JSR(&mut self, mode: AddressingMode) {
-        todo!();
+        self.push_u16(self.pc - 1);
+        let addr = self.get_address(mode);
+        let ptr = self.read_u16(addr);
+        self.pc = ptr;
     }
 
     // Load the accumulator
@@ -692,17 +704,12 @@ impl CPU {
     // Return from interrupt
     fn RTI(&mut self, mode: AddressingMode) {
         self.sr = self.pop();
-        let hi = self.pop() as u16;
-        let lo = self.pop() as u16;
-        self.pc = (hi << 8) | lo;
+        self.pc = self.pop_u16();
     }
 
     // Return from subroutine
     fn RTS(&mut self, mode: AddressingMode) {
-        let hi = self.pop() as u16;
-        let lo = self.pop() as u16;
-        self.pc = (hi << 8) | lo;
-        self.pc -= 1;
+        self.pc = self.pop_u16();
     }
 
     // TODO: Subtract with carry
