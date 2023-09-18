@@ -86,7 +86,7 @@
         - [x] View memory
         - [ ] Scroll memory
         - [ ] Edit memory
-        - [ ] Display stack
+        - [ ] View stack
     - [ ] Port to `ratatui`
     - [ ] Display (for NES PPU)
     - [ ] Menus (to emulation mode)
