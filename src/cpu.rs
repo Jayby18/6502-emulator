@@ -17,7 +17,6 @@ pub struct CPU {
     bus: Bus,      // memory bus
 }
 
-#[allow(unused)]
 impl CPU {
     pub fn new(bus: Bus) -> Self {
         CPU {
@@ -89,7 +88,7 @@ impl CPU {
         if v {
             // set flags using bitwise OR
             // if current flag is 0110 and you pass 0001, it becomes 0111
-            self.sr |= (f as u8);
+            self.sr |= f as u8;
         } else {
             // set flags using ...
             self.sr &= !(f as u8);
@@ -195,6 +194,7 @@ impl CPU {
 
     // TODO: Interrupt request (IRQ)
     // If interrupt disable flag clear, push PC and SR to stack and get next location from IRQ vector
+    #[allow(unused)]
     fn irq(&mut self) {
         if !self.get_flag(Flags::I) {
             self.push_u16(self.pc);
@@ -205,6 +205,7 @@ impl CPU {
 
     // TODO: Non-maskeable interrupt (NMI)
     // Push PC and SR to stack and get next location from NMI vector
+    #[allow(unused)]
     fn nmi(&mut self) {
         todo!();
     }
@@ -275,13 +276,12 @@ impl CPU {
             // E.g. PC is 0x0301. 0x0301 (+1) stores pointer 0x4230. Pointer 0x4230 (+1) stores address 0x04A9.
             // Returns address 0x04A9 because operand is there.
             AddressingMode::IND => {
-                let ptr = self.read_u16(self.pc);
+                let addr = self.read_u16(self.pc);
                 self.pc += 2;
 
-                let addr = self.read_u16(ptr);
+                let ptr = self.read_u16(addr);
                 self.pc += 2;
-
-                addr
+                ptr
             },
             // Indexed indirect addressing: the program is supplied with a zero-page pointer.
             // The X register is added to that pointer. This points to the address that holds the operand.
@@ -615,16 +615,14 @@ impl CPU {
     // Jump
     fn JMP(&mut self, mode: AddressingMode) {
         let addr = self.get_address(mode);
-        let ptr = self.read_u16(addr);
-        self.pc = ptr;
+        self.pc = addr;
     }
 
-    // TODO: jump to subroutine
+    // Jump to subroutine
     fn JSR(&mut self, mode: AddressingMode) {
         self.push_u16(self.pc - 1);
         let addr = self.get_address(mode);
-        let ptr = self.read_u16(addr);
-        self.pc = ptr;
+        self.pc = addr;
     }
 
     // Load the accumulator
@@ -685,9 +683,12 @@ impl CPU {
         self.sr = self.pop();
     }
 
+    // TODO: Rotate left
     fn ROL(&mut self, mode: AddressingMode) {
         todo!();
     }
+
+    // TODO: Rotate right
     fn ROR(&mut self, mode: AddressingMode) {
         todo!();
     }
@@ -818,6 +819,7 @@ impl CPU {
         self.write_u16(0xFFFC, 0x0600);
 
         // Write program
+        #[allow(clippy::needless_range_loop)]
         for i in 0..program.len() {
             // println!("Writing {} to {}", program[i], i as u16);
             self.write(0x0600 + (i as u16), program[i]);
@@ -867,9 +869,8 @@ impl CPU {
     }
 
     // Instructor with custom values
+    #[allow(clippy::too_many_arguments)]
     pub fn custom(a: u8, x: u8, y: u8, sp: u8, pc: u16, sr: u8, opcode: u8, bus: Bus,) -> Self {
-        
-
         CPU {
             a,
             x,

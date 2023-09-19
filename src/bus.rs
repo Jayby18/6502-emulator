@@ -39,3 +39,9 @@ impl Bus {
         self.ram
     }
 }
+
+impl Default for Bus {
+    fn default() -> Self {
+        Self::new()
+    }
+}

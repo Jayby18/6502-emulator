@@ -1,3 +1,5 @@
+#![allow(clippy::disallowed_names)]
+
 use mos_6502_emulator::{
     cpu::{
         CPU,
@@ -6,7 +8,7 @@ use mos_6502_emulator::{
     bus::Bus,
 };
 
-// TODO: test all addressing modes
+// TODO: Test all addressing modes (12, excl. IMP)
 
 #[test]
 fn imm() {
