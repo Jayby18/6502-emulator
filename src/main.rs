@@ -445,49 +445,6 @@ mod test {
     }
 
     #[test]
-    fn add_to_a() {
-        let bus: Bus = Bus::new();
-        let mut cpu: CPU = CPU::new(bus);
-
-        {   // no carry, no overflow
-            // println!("\nNo carry, no overflow");
-            cpu.set_a(0x0A);
-            cpu.add_to_a(0x10);
-            // println!("{}", cpu.get_a());
-            assert_eq!(cpu.get_a(), 0x1A);
-            assert!(!cpu.get_flag(Flags::C));
-            assert!(!cpu.get_flag(Flags::V));
-        }
-
-        {   // no carry -> carry, no overflow
-            // println!("\nNo carry -> carry, no overflow");
-            cpu.set_a(0xFF);
-            cpu.add_to_a(0x01);
-            assert_eq!(cpu.get_a(), 0);
-            assert!(cpu.get_flag(Flags::C));
-            assert!(!cpu.get_flag(Flags::V));
-        }
-
-        {   // carry -> no carry, no overflow
-            // println!("\nCarry -> no carry, no overflow");
-            cpu.set_flag(Flags::C, true);
-            cpu.set_a(0x0A);
-            cpu.add_to_a(0x10);
-            assert_eq!(cpu.get_a(), 0x1A + 0x01);
-            assert!(!cpu.get_flag(Flags::C));
-            assert!(!cpu.get_flag(Flags::V));
-        }
-
-        {   // no carry, no overflow -> overflow
-            // println!("\nNo carry, no overflow -> overflow");
-            cpu.set_a(0x7F);
-            cpu.add_to_a(0x04);
-            assert_eq!(cpu.get_a(), 0x83);
-            assert!(cpu.get_flag(Flags::V));
-        }
-    }
-
-    #[test]
     fn adc_imm() {
         let bus: Bus = Bus::new();
         let mut cpu: CPU = CPU::new(bus);
@@ -512,18 +469,28 @@ mod test {
 
         // No carry -> carry
         {
+            // LDA 0xFE, ADC 0x03. Should wrap around to 0x01.
             cpu.quick_start(vec![0xA9, 0xFE, 0x69, 0x03, 0x00]);
             assert_eq!(cpu.get_a(), 0x01);
             assert!(cpu.get_flag(Flags::C));
             assert!(!cpu.get_flag(Flags::V));
         }
 
-        // Overflow -> no overflow
+        // No carry -> carry
+        {
+            // LDA 0xFE, ADC 0x12. Should wrap around to 0x10.
+            cpu.quick_start(vec![0xA9, 0xFE, 0x69, 0x12, 0x00]);
+            assert_eq!(cpu.get_a(), 0x10);
+            assert!(cpu.get_flag(Flags::C));
+            assert!(!cpu.get_flag(Flags::V));
+        }
+
+        // TODO: Overflow -> no overflow
         {
             cpu.quick_start(vec![]);
         }
 
-        // No overflow -> overflow
+        // TODO: No overflow -> overflow
     }
 
     #[test]

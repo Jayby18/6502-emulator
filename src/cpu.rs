@@ -1,5 +1,9 @@
 use crate::bus::Bus;
 
+const NMI_VECTOR: u16 = 0xFFFA;
+const RESET_VECTOR: u16 = 0xFFFC;
+const IRQ_VECTOR: u16 = 0xFFFE;
+
 pub struct CPU {
     // byte: u8, word: u16
     a: u8,          // accumulator
@@ -101,21 +105,6 @@ impl CPU {
         self.set_flag(Flags::Z, value == 0x00);
         self.set_flag(Flags::N, (value & 0x80) == 0x80);
     }
-
-    // Add value to accumulator
-    pub fn add_to_a(&mut self, value: u8) {
-        // println!("Adding {} to A", value);
-        // Sum accumulator, value and carry
-        let sum: u16 = self.a as u16 + value as u16 + (self.sr & 0x01) as u16;
-        // println!("Sum: {}", sum);
-
-        // Set carry flag
-        self.set_flag(Flags::C, sum > 0xff);
-
-        let result = sum as u8;
-        self.set_flag(Flags::V, (value ^ result) & (result ^ self.a) & 0x80 != 0);
-        self.a = result;
-    }
     
     // Reset
     pub fn reset(&mut self) {
@@ -133,7 +122,7 @@ impl CPU {
 
     // Clock
     pub fn clock(&mut self) {
-        if self.pc == 0xFFFC {
+        if self.pc == RESET_VECTOR {
             let program_start: u16 = self.read_u16(self.pc);
             // println!("Starting program at: {}", program_start);
             self.pc = program_start;
@@ -171,9 +160,9 @@ impl CPU {
 
     // Advance by one step
     pub fn advance(&mut self) {
-        if self.pc == 0xFFFC {
+        // CPU starts from the 16-bit reset vector at 0xFFFC
+        if self.pc == RESET_VECTOR {
             let program_start: u16 = self.read_u16(self.pc);
-            // println!("Starting program at: {}", program_start);
             self.pc = program_start;
         } else {
             self.opcode = self.read(self.pc);
@@ -188,7 +177,7 @@ impl CPU {
 
             // TODO: finish opcode matrix (https://i.redd.it/m23p0jhvfwx81.jpg, ignore greyed boxes)
             match self.opcode {
-                0x00 => return, 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
+                0x00 => self.BRK(AddressingMode::IMP), 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
                 0x10 => self.BPL(AddressingMode::REL), 0x11 => self.ORA(AddressingMode::ZPY), 0x15 => self.ORA(AddressingMode::ZPX), 0x16 => self.ASL(AddressingMode::ZPX), 0x18 => self.CLC(AddressingMode::IMP), 0x1D => self.ORA(AddressingMode::ABX), 0x1E => self.ASL(AddressingMode::ABX),
                 0x20 => self.JSR(AddressingMode::ABS), 0x21 => self.AND(AddressingMode::ZPX), 0x24 => self.BIT(AddressingMode::ZP0), 0x25 => self.AND(AddressingMode::ZP0), 0x26 => self.ROL(AddressingMode::ZP0), 0x28 => self.PLP(AddressingMode::IMP), 0x29 => self.AND(AddressingMode::IMM), 0x2A => self.ROL(AddressingMode::ACC), 0x2C => self.BIT(AddressingMode::ABS), 0x2D => self.AND(AddressingMode::ABS), 0x2E => self.ROL(AddressingMode::ABS),
                 0x30 => self.BMI(AddressingMode::REL), 0x31 => self.AND(AddressingMode::ZPX), 0x35 => self.AND(AddressingMode::ZPX), 0x36 => self.ROL(AddressingMode::ZPX), 0x38 => self.SEC(AddressingMode::IMP), 0x39 => self.AND(AddressingMode::ABY), 0x3D => self.AND(AddressingMode::ABX), 0x3E => self.ROL(AddressingMode::ABX),
@@ -209,12 +198,18 @@ impl CPU {
         }
     }
 
-    // Interrupt request (irq)
+    // TODO: Interrupt request (IRQ)
+    // If interrupt disable flag clear, push PC and SR to stack and get next location from IRQ vector
     fn irq(&mut self) {
-        todo!();
+        if !self.get_flag(Flags::I) {
+            self.push_u16(self.pc);
+            self.push(self.sr);
+            self.pc = self.read_u16(IRQ_VECTOR)
+        }
     }
 
-    // Not maskeable interrupt (nmi)
+    // TODO: Non-maskeable interrupt (NMI)
+    // Push PC and SR to stack and get next location from NMI vector
     fn nmi(&mut self) {
         todo!();
     }
@@ -337,11 +332,16 @@ impl CPU {
     // Add with carry
     fn ADC(&mut self, mode: AddressingMode) {
         let addr: u16 = self.get_address(mode);
-        let value: u8 = self.read(addr);
-        self.add_to_a(value);
-        self.set_zero_negative_flags(self.a);
-        // TODO: set C if overflow in bit 7
+        let operand: u8 = self.read(addr);
+        
+        let mut sum: u16 = self.a as u16 + operand as u16 + (self.sr & 0x01) as u16;
+        self.set_flag(Flags::C, sum > 0xFF);
+        self.a = sum as u8;
+        
         // TODO: set V if sign bit is incorrect
+
+        // set zero and negative flags
+        self.set_zero_negative_flags(self.a);
     }
 
     // Logical AND
@@ -377,7 +377,6 @@ impl CPU {
 
     // Regarding all branch instructions:
     // TODO: currently, underflow will panic. How did original 6502 handle this?
-    // TODO: assuming that the 6502 uses two's complement for now. Check this later!
 
     // Branch if carry clear
     fn BCC(&mut self, mode: AddressingMode) {
@@ -475,22 +474,19 @@ impl CPU {
         }
     }
 
-    // Break (temporary hack)
-    // fn BRK(&mut self, mode: AddressingMode) {
-    //     return
-    // }
-
-    // TODO: proper BRK implementation
+    // Force interruption
+    // TODO: set flags before or after pushing to stack?
     fn BRK(&mut self, mode: AddressingMode) {
         // Push PC to stack
         self.push_u16(self.pc);
-        // Push SR to stack
-        self.push(self.sr);
-        // Load IRQ interrupt vector at 0xFFFE/F into PC
-        // TODO: 0xFFFE or 0xFFFF?
-        self.pc = self.read(0xFFFE) as u16;
         // Set break flag to 1
         self.set_flag(Flags::B, true);
+        // Push SR to stack
+        self.push(self.sr);
+        // Load IRQ interrupt vector at 0xFFFE (+1) into PC
+        self.pc = self.read_u16(IRQ_VECTOR);
+        // Set disable interrupt flag so other interrupts don't happen
+        self.set_flag(Flags::I, true);
     }
 
     // Branch if overflow clear

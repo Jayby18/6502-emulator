@@ -95,6 +95,10 @@
 
 ## Specific system emulation
 
+- 0xFFFA-0xFFFB: NMI interrupt vector
+- 0xFFFC-0xFFFD: reset vector
+- 0xFFFE-0xFFFF: IRQ interrupt vector
+
 ### Nintendo Entertainment System / Famicom
 
 See [NESdev Wiki](https://www.nesdev.org/wiki/Nesdev_Wiki) for more.
@@ -107,7 +111,7 @@ See [NESdev Wiki](https://www.nesdev.org/wiki/Nesdev_Wiki) for more.
 - 0x2008-0x3FFF: mirrors of PPU registers
 - 0x4000-0x4017: APU and I/O registers
 - 0x4018-0x401F: normally disabled (APU and I/O functionality)
-- 0x4020-0xFFFF: cartridge space (PRG ROM/RAM and mapper registers)
+- 0x4020-0xFFFF: cartridge space (PRG ROM/RAM and mapper registers, incl. reset and IRQ vector)
 
 ##### CPU-PPU registers
 
