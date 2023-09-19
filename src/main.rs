@@ -1,10 +1,10 @@
 // std::env::set_var::("RUST_BACKTRACE", "1");
 
 use std::{
-    io,
     thread,
     time::{Duration, Instant},
     sync::mpsc,
+    path::PathBuf,
 };
 use ratatui::{
     backend::CrosstermBackend,
@@ -18,13 +18,16 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use dirs;
 
-pub mod cpu;
-pub mod bus;
+mod cpu;
+mod bus;
 
 use cpu::CPU;
 use cpu::Flags;
 use bus::Bus;
+
+mod io;
 
 enum Event<I> {
     Input(I),
@@ -32,29 +35,21 @@ enum Event<I> {
 }
 
 #[allow(unused_variables)]
-fn main() -> Result<(), io::Error> {
+fn main() -> Result<(), std::io::Error> {
     // Init bus and CPU
     let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::new(bus);
-    // cpu.write(0x00F1, 0x27);
+    cpu.write(0x00F1, 0x27);
     // cpu.load_program(vec![0xA9, 0xA5, 0x69, 0x37, 0x29, 0xF0, 0x0A, 0xA9, 0x5A, 0x69, 0xC3, 0x29, 0x0F, 0x0A, 0xA9, 0x12, 0x69, 0x34, 0x29, 0xAA, 0x0A, 0x00]);
-    
-    // cpu.write(0x05D5, 0xA9);
-    // cpu.write(0x05D6, 0xFF);
-    // cpu.load_program(vec![0xA9, 0x2A, 0x29, 0xC0, 0xF0, 0xD0, 0xA9, 0xAF]);
 
-    cpu.write(0x3000, 0xA9);
-    cpu.write(0x3001, 0x04);
-    cpu.write(0x3002, 0x00);
-
-    // LDA 0x02, JMP to 0x3000. Then LDA 0x04 and BRK.
-    cpu.load_program(vec![0xA9, 0x02, 0x4C, 0x00, 0x30]);
+    let program = io::load_bytes(&dirs::home_dir().unwrap().join("program.txt"))?;
+    cpu.load_program(program);
     
     cpu.reset();
 
     // Set up terminal
     enable_raw_mode()?;
-    let mut stdout = io::stdout();
+    let mut stdout = std::io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
