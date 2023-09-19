@@ -1,5 +1,6 @@
 use crate::bus::Bus;
 
+#[allow(dead_code)]
 const NMI_VECTOR: u16 = 0xFFFA;
 const RESET_VECTOR: u16 = 0xFFFC;
 const IRQ_VECTOR: u16 = 0xFFFE;
@@ -19,7 +20,7 @@ pub struct CPU {
 #[allow(unused)]
 impl CPU {
     pub fn new(bus: Bus) -> Self {
-        let cpu = CPU {
+        CPU {
             a: 0x00,
             x: 0x00,
             y: 0x00,
@@ -28,9 +29,7 @@ impl CPU {
             sr: 0x00,
             opcode: 0x00,
             bus,
-        };
-
-        return cpu;
+        }
     }
 
     /// Write data to specific address through the bus
@@ -800,7 +799,7 @@ pub enum Flags {
 }
 
 impl Flags {
-    pub fn from_str(string: &str) -> u8 {
+    pub fn byte_from_str(string: &str) -> u8 {
         match string {
             "C" => 0b0000_0001,
             "Z" => 0b0000_0010,
