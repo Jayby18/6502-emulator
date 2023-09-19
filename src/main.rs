@@ -71,10 +71,8 @@ fn main() -> Result<(), io::Error> {
                 }
             }
 
-            if last_tick.elapsed() >= tick_rate {
-                if let Ok(_) = tx.send(Event::Tick) {
-                    last_tick = Instant::now();
-                }
+            if last_tick.elapsed() >= tick_rate && tx.send(Event::Tick).is_ok() {
+                last_tick = Instant::now();
             }
         }
     });
@@ -152,7 +150,7 @@ fn main() -> Result<(), io::Error> {
 
             // Status flags
             let flags = Table::new(vec![
-                Row::new(vec!["C", "Z", "I", "D", "B", "U", "V", "N"]
+                Row::new(["C", "Z", "I", "D", "B", "U", "V", "N"]
                     .iter()
                     .map(|&flag| {
                         if cpu_state[5] & Flags::byte_from_str(flag) as u16 == 1 {
@@ -184,7 +182,7 @@ fn main() -> Result<(), io::Error> {
 
             // Memory (from program start)
             let program: Vec<u8> = mem.iter().cloned().skip(0x0600).collect::<Vec<_>>();
-            let indices: Vec<u16> = (0..(0 + program.len() as u16)).collect();
+            let indices: Vec<u16> = (0..program.len() as u16).collect();
 
             let program_list = Table::new(
                 indices

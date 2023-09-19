@@ -39,7 +39,7 @@ impl CPU {
     }
 
     pub fn read(&mut self, addr: u16) -> u8 {
-        return self.bus.read(addr);
+        self.bus.read(addr)
     }
 
     pub fn write_u16(&mut self, addr: u16, data: u16) {
@@ -47,7 +47,7 @@ impl CPU {
     }
 
     pub fn read_u16(&mut self, addr: u16) -> u16 {
-        return self.bus.read_u16(addr);
+        self.bus.read_u16(addr)
     }
 
     // Push to stack
@@ -80,11 +80,7 @@ impl CPU {
     /// Return whether status register has flag
     pub fn get_flag(&mut self, f: Flags) -> bool {
         // Return value of status register corresponding to flag f
-        if self.sr & (f as u8) != 0 {
-            return true;
-        } else {
-            return false;
-        }
+        self.sr & (f as u8) != 0
     }
 
     /// Set flag according to boolean
@@ -238,7 +234,7 @@ impl CPU {
             AddressingMode::IMM => {
                 let addr = self.pc;
                 self.pc += 1;
-                return addr;
+                addr
             },
             AddressingMode::IMP => {
                 panic!("not supported");
@@ -246,32 +242,32 @@ impl CPU {
             AddressingMode::ZP0 => {
                 let addr = self.read(self.pc) as u16;
                 self.pc += 1;
-                return addr;
+                addr
             },
             AddressingMode::ZPX => {
                 let addr = self.read(self.pc).wrapping_add(self.x) as u16;
                 self.pc += 1;
-                return addr;
+                addr
             },
             AddressingMode::ZPY => {
                 let addr = self.read(self.pc).wrapping_add(self.y) as u16;
                 self.pc += 1;
-                return addr;
+                addr
             },
             AddressingMode::ABS => {
                 let addr = self.read_u16(self.pc);
                 self.pc += 2;
-                return addr;
+                addr
             },
             AddressingMode::ABX => {
                 let addr = self.read_u16(self.pc).wrapping_add(self.x as u16);
                 self.pc += 2;
-                return addr;
+                addr
             },
             AddressingMode::ABY => {
                 let addr = self.read_u16(self.pc).wrapping_add(self.y as u16);
                 self.pc += 2;
-                return addr;
+                addr
             },
             // Indirect (IND) addressing: the program is supplied with a pointer.
             // The value that it reads there is the address that holds the operand.
@@ -285,7 +281,7 @@ impl CPU {
                 let addr = self.read_u16(ptr);
                 self.pc += 2;
 
-                return addr;
+                addr
             },
             // Indexed indirect addressing: the program is supplied with a zero-page pointer.
             // The X register is added to that pointer. This points to the address that holds the operand.
@@ -300,7 +296,7 @@ impl CPU {
                 let hi = self.read((ptr + 1) as u16);
 
                 self.pc += 2;
-                return (hi as u16) << 8 | (lo as u16);
+                (hi as u16) << 8 | (lo as u16)
             },
             // Indirect indexed addressing: the program is supplied with a zero-page address.
             // The value that it reads there + the Y register, is a pointer to the address that holds the operand.
@@ -316,7 +312,7 @@ impl CPU {
                 let lo = self.read(ptr as u16);
 
                 self.pc += 2;
-                return lo as u16;
+                lo as u16
             },
             AddressingMode::REL => todo!(),
             AddressingMode::ACC => todo!(),
@@ -851,7 +847,7 @@ impl CPU {
 
     // Return status register (flags) as u8
     pub fn get_status(&self) -> u8 {
-        return self.sr;
+        self.sr
     }
 
     pub fn get_state(&self) -> Vec<u16> {
@@ -872,7 +868,9 @@ impl CPU {
 
     // Instructor with custom values
     pub fn custom(a: u8, x: u8, y: u8, sp: u8, pc: u16, sr: u8, opcode: u8, bus: Bus,) -> Self {
-        let cpu = CPU {
+        
+
+        CPU {
             a,
             x,
             y,
@@ -881,8 +879,6 @@ impl CPU {
             sr,
             opcode,
             bus,
-        };
-
-        return cpu;
+        }
     }
 }

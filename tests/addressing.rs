@@ -98,11 +98,11 @@ fn idx() {
     let lo: u8 = 0x91;
     let hi: u8 = 0xEF;
     let addr: u16 = (hi as u16) << 8 | (lo as u16);
-    let mut cpu: CPU = CPU::custom(0, x, 0, 0, pc as u16, 0, 0, Bus::new());
+    let mut cpu: CPU = CPU::custom(0, x, 0, 0, pc, 0, 0, Bus::new());
     cpu.write(pc, base);
     cpu.write(ptr as u16, lo);
     cpu.write(ptr as u16 + 1, hi);
-    assert_eq!(cpu.get_address(AddressingMode::IDX), addr as u16);
+    assert_eq!(cpu.get_address(AddressingMode::IDX), { addr });
 }
 
 
