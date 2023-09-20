@@ -73,6 +73,7 @@
     - [x] TYA
     - [x] XXX
 - [ ] Test all instructions
+- [ ] Test all opcodes
 - [ ] Count cycles
 
 ### Frontend
