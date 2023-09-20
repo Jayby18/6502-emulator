@@ -4,7 +4,6 @@ use std::{
     thread,
     time::{Duration, Instant},
     sync::mpsc,
-    path::PathBuf,
 };
 use ratatui::{
     backend::CrosstermBackend,
@@ -40,9 +39,8 @@ fn main() -> Result<(), std::io::Error> {
     let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::new(bus);
     cpu.write(0x00F1, 0x27);
-    // cpu.load_program(vec![0xA9, 0xA5, 0x69, 0x37, 0x29, 0xF0, 0x0A, 0xA9, 0x5A, 0x69, 0xC3, 0x29, 0x0F, 0x0A, 0xA9, 0x12, 0x69, 0x34, 0x29, 0xAA, 0x0A, 0x00]);
 
-    let program = io::load_bytes(&dirs::home_dir().unwrap().join("program.txt"))?;
+    let program = io::load_bytes(&dirs::home_dir().unwrap().join("stack.txt"))?;
     cpu.load_program(program);
     
     cpu.reset();
@@ -121,7 +119,7 @@ fn main() -> Result<(), std::io::Error> {
             let right_layout = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
-                    Constraint::Length(display_height),
+                    Constraint::Min(20),
                     Constraint::Min(3),
                     Constraint::Length(6),
                 ])
@@ -200,21 +198,53 @@ fn main() -> Result<(), std::io::Error> {
                             Row::new(vec![format!("0x{:04X}", 0x0600 + i), format!("0x{:02X}",program[*i as usize]).to_string()])
                         }
                     })
-            )
-            .header(
-                Row::new(vec!["Address", "Value"])
-            )
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title("Memory (from program start)")
-            )
-            .widths(&[
-                Constraint::Percentage(50),
-                Constraint::Percentage(50),
-            ])
-            .column_spacing(1);
+                )
+                .header(
+                    Row::new(vec!["Address", "Value"])
+                )
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Memory (from program start)")
+                )
+                .widths(&[
+                    Constraint::Percentage(50),
+                    Constraint::Percentage(50),
+                ])
+                .column_spacing(1);
             f.render_widget(program_list, left_layout[2]);
+
+            let stack: Vec<u8> = mem.iter().cloned().skip(0x0100).take(0xFF).collect::<Vec<_>>();
+            let indices: Vec<u8> = (0..stack.len() as u8).rev().collect();
+
+            let stack_list = Table::new(
+                indices
+                    .iter()
+                    .map(|i| {
+                        if (indices[*i as usize]) as u16 == cpu_state[3] {
+                            Row::new(vec![format!("0x{:04X}", 0x0100 + *i as u16), format!("0x{0:2X}", stack[*i as usize]).to_string()])
+                                .style(Style::default().bg(Color::White).fg(Color::Black))
+                        } else if stack[*i as usize] == 0x00 {
+                            Row::new(vec![format!("0x{0:4X}", 0x0100 + *i as u16), "----".to_string()])
+                        } else {
+                            Row::new(vec![format!("0x{0:4X}", 0x0100 + *i as u16), format!("0x{0:2X}", stack[*i as usize]).to_string()])
+                        }
+                    })
+                )
+                .header(
+                    Row::new(vec!["Address", "Value"])
+                    )
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Stack")
+                    )
+                .widths(&[
+                        Constraint::Percentage(50),
+                        Constraint::Percentage(50),
+                ])
+                .column_spacing(1);
+            f.render_widget(stack_list, right_layout[0]);
 
             // TODO: proper implementation
             // For now, I just write to memory starting at address 0x3000.
