@@ -23,7 +23,8 @@ impl CPU {
             a: 0x00,
             x: 0x00,
             y: 0x00,
-            sp: 0xFF,
+            // sp: 0xFF,
+            sp: 0x00,
             pc: 0x0000,
             sr: 0x00,
             opcode: 0x00,
@@ -51,7 +52,7 @@ impl CPU {
 
     // Push to stack
     pub fn push(&mut self, data: u8) {
-        self.sp -= 1;
+        self.sp -= 0x01;
         self.write(0x0100 + (self.sp as u16), data);
     }
 
@@ -129,24 +130,25 @@ impl CPU {
             // println!("OP: {}", opcode);
             self.pc += 1;
 
-            // TODO: finish opcode matrix (https://i.redd.it/m23p0jhvfwx81.jpg, ignore greyed boxes)
+            if self.opcode == 0x00 { break }
+
             match self.opcode {
-                0x00 => return, 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
+                0x00 => self.BRK(AddressingMode::IMP), 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
                 0x10 => self.BPL(AddressingMode::REL), 0x11 => self.ORA(AddressingMode::ZPY), 0x15 => self.ORA(AddressingMode::ZPX), 0x16 => self.ASL(AddressingMode::ZPX), 0x18 => self.CLC(AddressingMode::IMP), 0x1D => self.ORA(AddressingMode::ABX), 0x1E => self.ASL(AddressingMode::ABX),
                 0x20 => self.JSR(AddressingMode::ABS), 0x21 => self.AND(AddressingMode::ZPX), 0x24 => self.BIT(AddressingMode::ZP0), 0x25 => self.AND(AddressingMode::ZP0), 0x26 => self.ROL(AddressingMode::ZP0), 0x28 => self.PLP(AddressingMode::IMP), 0x29 => self.AND(AddressingMode::IMM), 0x2A => self.ROL(AddressingMode::ACC), 0x2C => self.BIT(AddressingMode::ABS), 0x2D => self.AND(AddressingMode::ABS), 0x2E => self.ROL(AddressingMode::ABS),
                 0x30 => self.BMI(AddressingMode::REL), 0x31 => self.AND(AddressingMode::ZPX), 0x35 => self.AND(AddressingMode::ZPX), 0x36 => self.ROL(AddressingMode::ZPX), 0x38 => self.SEC(AddressingMode::IMP), 0x39 => self.AND(AddressingMode::ABY), 0x3D => self.AND(AddressingMode::ABX), 0x3E => self.ROL(AddressingMode::ABX),
                 0x40 => self.RTI(AddressingMode::IMP), 0x41 => self.EOR(AddressingMode::ZPX), 0x45 => self.EOR(AddressingMode::ZP0), 0x46 => self.LSR(AddressingMode::ZP0), 0x48 => self.PHA(AddressingMode::IMP), 0x49 => self.EOR(AddressingMode::IMM), 0x4A => self.LSR(AddressingMode::ACC), 0x4C => self.JMP(AddressingMode::ABS), 0x4D => self.EOR(AddressingMode::ABS), 0x4E => self.LSR(AddressingMode::ABS),
                 0x50 => self.BVC(AddressingMode::REL), 0x51 => self.EOR(AddressingMode::ZPY), 0x55 => self.EOR(AddressingMode::ZPY), 0x56 => self.LSR(AddressingMode::ZPX), 0x58 => self.CLI(AddressingMode::IMP), 0x59 => self.EOR(AddressingMode::ABY), 0x5D => self.EOR(AddressingMode::ABX), 0x5E => self.LSR(AddressingMode::ABX),
                 0x60 => self.RTS(AddressingMode::IMP), 0x61 => self.ADC(AddressingMode::ZPX), 0x65 => self.ADC(AddressingMode::ZP0), 0x66 => self.ROR(AddressingMode::ZP0), 0x68 => self.PLA(AddressingMode::IMP), 0x69 => self.ADC(AddressingMode::IMM), 0x6A => self.ROR(AddressingMode::ACC), 0x6C => self.JMP(AddressingMode::IND), 0x6D => self.ADC(AddressingMode::ABS), 0x6E => self.ROR(AddressingMode::ABS),
-                0x70 => self.BVS(AddressingMode::REL), 0x71 => self.ADC(AddressingMode::ZPY), 0x75 => self.ADC(AddressingMode::ZPX), 0x78 => self.SEI(AddressingMode::IMP),
-                0x80 => self.NOP(AddressingMode::IMM), 0x85 => self.STA(AddressingMode::ZP0), 0x8D => self.STA(AddressingMode::ABS),
-                0x90 => self.BCC(AddressingMode::REL), 0x91 => self.STA(AddressingMode::IDY),
+                0x70 => self.BVS(AddressingMode::REL), 0x71 => self.ADC(AddressingMode::ZPY), 0x75 => self.ADC(AddressingMode::ZPX), 0x78 => self.SEI(AddressingMode::IMP), 0x79 => self.ADC(AddressingMode::ABY), 0x7D => self.ADC(AddressingMode::ABX), 0x7E => self.ROR(AddressingMode::ABX),
+                0x80 => self.NOP(AddressingMode::IMM), 0x81 => self.STA(AddressingMode::ZPX), 0x84 => self.STY(AddressingMode::ZP0), 0x85 => self.STA(AddressingMode::ZP0), 0x86 => self.STX(AddressingMode::ZP0), 0x88 => self.DEY(AddressingMode::IMP), 0x8A => self.TXA(AddressingMode::IMP), 0x8C => self.STY(AddressingMode::ABS), 0x8D => self.STA(AddressingMode::ABS), 0x8E => self.STX(AddressingMode::ABS),
+                0x90 => self.BCC(AddressingMode::REL), 0x91 => self.STA(AddressingMode::IDY), 0x94 => self.STY(AddressingMode::ZPX), 0x95 => self.STA(AddressingMode::ZPX), 0x96 => self.STX(AddressingMode::ZPY), 0x98 => self.TYA(AddressingMode::IMP), 0x99 => self.STA(AddressingMode::ABY), 0x9A => self.TXS(AddressingMode::IMP), 0x9D => self.STA(AddressingMode::ABX),
                 0xA0 => self.LDY(AddressingMode::IMM), 0xA1 => self.LDA(AddressingMode::ZPX), 0xA2 => self.LDX(AddressingMode::IMM), 0xA4 => self.LDY(AddressingMode::ZP0), 0xA5 => self.LDA(AddressingMode::ZP0), 0xA6 => self.LDX(AddressingMode::ZP0), 0xA8 => self.TAY(AddressingMode::IMP), 0xA9 => self.LDA(AddressingMode::IMM), 0xAA => self.TAX(AddressingMode::IMP), 0xAC => self.LDY(AddressingMode::ABS), 0xAD => self.LDA(AddressingMode::ABS), 0xAE => self.LDX(AddressingMode::ABS),
-                0xB0 => self.BCS(AddressingMode::REL), 0xB8 => self.CLV(AddressingMode::IMP),
-                0xC0 => self.CPY(AddressingMode::IMM),
-                0xD0 => self.BNE(AddressingMode::REL), 0xD8 => self.CLD(AddressingMode::IMP),
-                0xE0 => self.CPX(AddressingMode::IMM),
-                0xF0 => self.BEQ(AddressingMode::REL), 0xF8 => self.SED(AddressingMode::IMP),
+                0xB0 => self.BCS(AddressingMode::REL), 0xB1 => self.LDA(AddressingMode::ZPY), 0xB4 => self.LDY(AddressingMode::ZPX), 0xB5 => self.LDA(AddressingMode::ZPX), 0xB6 => self.LDX(AddressingMode::ZPY), 0xB8 => self.CLV(AddressingMode::IMP), 0xB9 => self.LDA(AddressingMode::ABY), 0xBA => self.TSX(AddressingMode::IMP), 0xBC => self.LDY(AddressingMode::ABX), 0xBD => self.LDA(AddressingMode::ABX), 0xBE => self.LDX(AddressingMode::ABY),
+                0xC0 => self.CPY(AddressingMode::IMM), 0xC1 => self.CMP(AddressingMode::ZPX), 0xC4 => self.CPY(AddressingMode::ZP0), 0xC5 => self.CMP(AddressingMode::ZP0), 0xC6 => self.DEC(AddressingMode::ZP0), 0xC8 => self.CLV(AddressingMode::IMP), 0xC9 => self.CMP(AddressingMode::IMM), 0xCA => self.DEX(AddressingMode::IMP), 0xCC => self.CPY(AddressingMode::ABS), 0xCD => self.CMP(AddressingMode::ABS), 0xCE => self.DEC(AddressingMode::ABS),
+                0xD0 => self.BNE(AddressingMode::REL), 0xD1 => self.CMP(AddressingMode::ZPY), 0xD5 => self.CMP(AddressingMode::ZPX), 0xD6 => self.DEC(AddressingMode::ZPX), 0xD8 => self.CLD(AddressingMode::IMP), 0xD9 => self.CMP(AddressingMode::ABY), 0xDD => self.CMP(AddressingMode::ABX), 0xDE => self.DEC(AddressingMode::ABX),
+                0xE0 => self.CPX(AddressingMode::IMM), 0xE1 => self.SBC(AddressingMode::ZPX), 0xE4 => self.CPX(AddressingMode::ZP0), 0xE5 => self.SBC(AddressingMode::ZP0), 0xE6 => self.INC(AddressingMode::ZP0), 0xE8 => self.INX(AddressingMode::IMP), 0xE9 => self.SBC(AddressingMode::IMM), 0xEA => self.NOP(AddressingMode::IMP), 0xEC => self.CPX(AddressingMode::ABS), 0xED => self.SBC(AddressingMode::ABS), 0xEE => self.INC(AddressingMode::ABS),
+                0xF0 => self.BEQ(AddressingMode::REL), 0xF1 => self.SBC(AddressingMode::ZPY), 0xF5 => self.SBC(AddressingMode::ZPX), 0xF6 => self.INC(AddressingMode::ZPX), 0xF8 => self.SED(AddressingMode::IMP), 0xF9 => self.SBC(AddressingMode::ABY), 0xFD => self.SBC(AddressingMode::ABX), 0xFE => self.INC(AddressingMode::ABX),
                 _ => self.XXX(AddressingMode::IMP),
             }
         }
@@ -169,7 +171,6 @@ impl CPU {
                 return
             }
 
-            // TODO: finish opcode matrix (https://i.redd.it/m23p0jhvfwx81.jpg, ignore greyed boxes)
             match self.opcode {
                 0x00 => self.BRK(AddressingMode::IMP), 0x01 => self.ORA(AddressingMode::ZPX), 0x05 => self.ORA(AddressingMode::ZP0), 0x06 => self.ASL(AddressingMode::ZP0), 0x08 => self.PHP(AddressingMode::IMP), 0x09 => self.ORA(AddressingMode::IMM), 0x0A => self.ASL(AddressingMode::ACC), 0x0D => self.ORA(AddressingMode::ABS), 0x0E => self.ASL(AddressingMode::ABS),
                 0x10 => self.BPL(AddressingMode::REL), 0x11 => self.ORA(AddressingMode::ZPY), 0x15 => self.ORA(AddressingMode::ZPX), 0x16 => self.ASL(AddressingMode::ZPX), 0x18 => self.CLC(AddressingMode::IMP), 0x1D => self.ORA(AddressingMode::ABX), 0x1E => self.ASL(AddressingMode::ABX),
@@ -178,15 +179,15 @@ impl CPU {
                 0x40 => self.RTI(AddressingMode::IMP), 0x41 => self.EOR(AddressingMode::ZPX), 0x45 => self.EOR(AddressingMode::ZP0), 0x46 => self.LSR(AddressingMode::ZP0), 0x48 => self.PHA(AddressingMode::IMP), 0x49 => self.EOR(AddressingMode::IMM), 0x4A => self.LSR(AddressingMode::ACC), 0x4C => self.JMP(AddressingMode::ABS), 0x4D => self.EOR(AddressingMode::ABS), 0x4E => self.LSR(AddressingMode::ABS),
                 0x50 => self.BVC(AddressingMode::REL), 0x51 => self.EOR(AddressingMode::ZPY), 0x55 => self.EOR(AddressingMode::ZPY), 0x56 => self.LSR(AddressingMode::ZPX), 0x58 => self.CLI(AddressingMode::IMP), 0x59 => self.EOR(AddressingMode::ABY), 0x5D => self.EOR(AddressingMode::ABX), 0x5E => self.LSR(AddressingMode::ABX),
                 0x60 => self.RTS(AddressingMode::IMP), 0x61 => self.ADC(AddressingMode::ZPX), 0x65 => self.ADC(AddressingMode::ZP0), 0x66 => self.ROR(AddressingMode::ZP0), 0x68 => self.PLA(AddressingMode::IMP), 0x69 => self.ADC(AddressingMode::IMM), 0x6A => self.ROR(AddressingMode::ACC), 0x6C => self.JMP(AddressingMode::IND), 0x6D => self.ADC(AddressingMode::ABS), 0x6E => self.ROR(AddressingMode::ABS),
-                0x70 => self.BVS(AddressingMode::REL), 0x71 => self.ADC(AddressingMode::ZPY), 0x75 => self.ADC(AddressingMode::ZPX), 0x78 => self.SEI(AddressingMode::IMP),
-                0x80 => self.NOP(AddressingMode::IMM), 0x85 => self.STA(AddressingMode::ZP0), 0x8D => self.STA(AddressingMode::ABS),
-                0x90 => self.BCC(AddressingMode::REL), 0x91 => self.STA(AddressingMode::IDY),
+                0x70 => self.BVS(AddressingMode::REL), 0x71 => self.ADC(AddressingMode::ZPY), 0x75 => self.ADC(AddressingMode::ZPX), 0x78 => self.SEI(AddressingMode::IMP), 0x79 => self.ADC(AddressingMode::ABY), 0x7D => self.ADC(AddressingMode::ABX), 0x7E => self.ROR(AddressingMode::ABX),
+                0x80 => self.NOP(AddressingMode::IMM), 0x81 => self.STA(AddressingMode::ZPX), 0x84 => self.STY(AddressingMode::ZP0), 0x85 => self.STA(AddressingMode::ZP0), 0x86 => self.STX(AddressingMode::ZP0), 0x88 => self.DEY(AddressingMode::IMP), 0x8A => self.TXA(AddressingMode::IMP), 0x8C => self.STY(AddressingMode::ABS), 0x8D => self.STA(AddressingMode::ABS), 0x8E => self.STX(AddressingMode::ABS),
+                0x90 => self.BCC(AddressingMode::REL), 0x91 => self.STA(AddressingMode::IDY), 0x94 => self.STY(AddressingMode::ZPX), 0x95 => self.STA(AddressingMode::ZPX), 0x96 => self.STX(AddressingMode::ZPY), 0x98 => self.TYA(AddressingMode::IMP), 0x99 => self.STA(AddressingMode::ABY), 0x9A => self.TXS(AddressingMode::IMP), 0x9D => self.STA(AddressingMode::ABX),
                 0xA0 => self.LDY(AddressingMode::IMM), 0xA1 => self.LDA(AddressingMode::ZPX), 0xA2 => self.LDX(AddressingMode::IMM), 0xA4 => self.LDY(AddressingMode::ZP0), 0xA5 => self.LDA(AddressingMode::ZP0), 0xA6 => self.LDX(AddressingMode::ZP0), 0xA8 => self.TAY(AddressingMode::IMP), 0xA9 => self.LDA(AddressingMode::IMM), 0xAA => self.TAX(AddressingMode::IMP), 0xAC => self.LDY(AddressingMode::ABS), 0xAD => self.LDA(AddressingMode::ABS), 0xAE => self.LDX(AddressingMode::ABS),
-                0xB0 => self.BCS(AddressingMode::REL), 0xB8 => self.CLV(AddressingMode::IMP),
-                0xC0 => self.CPY(AddressingMode::IMM),
-                0xD0 => self.BNE(AddressingMode::REL), 0xD8 => self.CLD(AddressingMode::IMP),
-                0xE0 => self.CPX(AddressingMode::IMM),
-                0xF0 => self.BEQ(AddressingMode::REL), 0xF8 => self.SED(AddressingMode::IMP),
+                0xB0 => self.BCS(AddressingMode::REL), 0xB1 => self.LDA(AddressingMode::ZPY), 0xB4 => self.LDY(AddressingMode::ZPX), 0xB5 => self.LDA(AddressingMode::ZPX), 0xB6 => self.LDX(AddressingMode::ZPY), 0xB8 => self.CLV(AddressingMode::IMP), 0xB9 => self.LDA(AddressingMode::ABY), 0xBA => self.TSX(AddressingMode::IMP), 0xBC => self.LDY(AddressingMode::ABX), 0xBD => self.LDA(AddressingMode::ABX), 0xBE => self.LDX(AddressingMode::ABY),
+                0xC0 => self.CPY(AddressingMode::IMM), 0xC1 => self.CMP(AddressingMode::ZPX), 0xC4 => self.CPY(AddressingMode::ZP0), 0xC5 => self.CMP(AddressingMode::ZP0), 0xC6 => self.DEC(AddressingMode::ZP0), 0xC8 => self.CLV(AddressingMode::IMP), 0xC9 => self.CMP(AddressingMode::IMM), 0xCA => self.DEX(AddressingMode::IMP), 0xCC => self.CPY(AddressingMode::ABS), 0xCD => self.CMP(AddressingMode::ABS), 0xCE => self.DEC(AddressingMode::ABS),
+                0xD0 => self.BNE(AddressingMode::REL), 0xD1 => self.CMP(AddressingMode::ZPY), 0xD5 => self.CMP(AddressingMode::ZPX), 0xD6 => self.DEC(AddressingMode::ZPX), 0xD8 => self.CLD(AddressingMode::IMP), 0xD9 => self.CMP(AddressingMode::ABY), 0xDD => self.CMP(AddressingMode::ABX), 0xDE => self.DEC(AddressingMode::ABX),
+                0xE0 => self.CPX(AddressingMode::IMM), 0xE1 => self.SBC(AddressingMode::ZPX), 0xE4 => self.CPX(AddressingMode::ZP0), 0xE5 => self.SBC(AddressingMode::ZP0), 0xE6 => self.INC(AddressingMode::ZP0), 0xE8 => self.INX(AddressingMode::IMP), 0xE9 => self.SBC(AddressingMode::IMM), 0xEA => self.NOP(AddressingMode::IMP), 0xEC => self.CPX(AddressingMode::ABS), 0xED => self.SBC(AddressingMode::ABS), 0xEE => self.INC(AddressingMode::ABS),
+                0xF0 => self.BEQ(AddressingMode::REL), 0xF1 => self.SBC(AddressingMode::ZPY), 0xF5 => self.SBC(AddressingMode::ZPX), 0xF6 => self.INC(AddressingMode::ZPX), 0xF8 => self.SED(AddressingMode::IMP), 0xF9 => self.SBC(AddressingMode::ABY), 0xFD => self.SBC(AddressingMode::ABX), 0xFE => self.INC(AddressingMode::ABX),
                 _ => self.XXX(AddressingMode::IMP),
             }
         }
