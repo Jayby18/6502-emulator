@@ -212,7 +212,7 @@ impl CPU {
 
 /// Addressing modes
 #[derive(PartialEq)]
-#[allow(clippy::upper_case_acronyms)]
+#[allow(clippy::upper_case_acronyms, dead_code)]
 pub enum AddressingMode {
     IMM,
     IMP,
@@ -356,7 +356,7 @@ impl CPU {
             self.set_flag(Flags::C, self.a & 0x80 == 0x80);
 
             // Shift other bits to the left
-            self.a = self.a << 1;
+            self.a <<= 1;
 
             self.set_zero_negative_flags(self.a);
         } else {
@@ -653,7 +653,7 @@ impl CPU {
             self.set_flag(Flags::C, self.a & 0x01 == 0x01);
 
             // Shift other bits to the right
-            self.a = self.a >> 1;
+            self.a >>= 1;
 
             self.set_zero_negative_flags(self.a);
         } else {
@@ -843,6 +843,7 @@ impl CPU {
 }
 
 /// Flags (in order from least to most significant bit)
+#[allow(unused)]
 pub enum Flags {
     /// Carry
     C = 0b0000_0001,
@@ -895,6 +896,7 @@ impl CPU {
     }
 
     /// Write program to memory, reset, and start clock
+    #[allow(unused)]
     pub fn quick_start(&mut self, program: Vec<u8>) {
         self.load_program(program);
         self.reset();
@@ -929,7 +931,7 @@ impl CPU {
     }
 
     /// Construct CPU with custom values
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, unused)]
     pub fn custom(a: u8, x: u8, y: u8, sp: u8, pc: u16, sr: u8, opcode: u8, bus: Bus,) -> Self {
         CPU {
             a,

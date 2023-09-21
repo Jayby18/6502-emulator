@@ -1,19 +1,11 @@
-use std::{
-    thread,
-    time::{Duration, Instant},
-    sync::mpsc,
-};
 use ratatui::{
-    backend::CrosstermBackend,
     widgets::*,
     layout::{Layout, Constraint, Direction},
     style::{Color, Style},
-    Terminal,
 };
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event as CEvent, KeyCode},
+    event::KeyCode,
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
 mod core;
@@ -34,44 +26,14 @@ fn main() -> Result<(), std::io::Error> {
     // Init bus and CPU
     let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::new(bus);
-    cpu.write(0x00F1, 0x27);
 
+    cpu.write(0x00F1, 0x27);
     let program = io::load_bytes(&dirs::home_dir().unwrap().join("stack.txt"))?;
     cpu.load_program(program);
-    
     cpu.reset();
 
     // Set up terminal
-    enable_raw_mode()?;
-    let mut stdout = std::io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-
-    // Clear terminal
-    terminal.clear()?;
-
-    // User event handler
-    let (tx, rx) = mpsc::channel();
-    let tick_rate = Duration::from_millis(200);
-    thread::spawn(move | | {
-        let mut last_tick = Instant::now();
-        loop {
-            let timeout = tick_rate
-                .checked_sub(last_tick.elapsed())
-                .unwrap_or_else(| | Duration::from_secs(0));
-
-            if event::poll(timeout).expect("poll works") {
-                if let CEvent::Key(key) = event::read().expect("can read events") {
-                    tx.send(Event::Input(key)).expect("can send events");
-                }
-            }
-
-            if last_tick.elapsed() >= tick_rate && tx.send(Event::Tick).is_ok() {
-                last_tick = Instant::now();
-            }
-        }
-    });
+    let (mut terminal, rx) = stdr::setup_terminal!();
 
     // Render loop
     loop {
@@ -299,9 +261,7 @@ fn main() -> Result<(), std::io::Error> {
     }
 
     // Restore terminal
-    disable_raw_mode()?;
-    execute!(terminal.backend_mut(), LeaveAlternateScreen, DisableMouseCapture)?;
-    terminal.show_cursor()?;
+    stdr::restore_terminal!(terminal);
 
     Ok(())
 }

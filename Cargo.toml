@@ -1,6 +1,6 @@
 [package]
 name = "mos-6502-emulator"
-version = "0.1.0"
+version = "0.1.0-alpha"
 edition = "2021"
 authors = ["Jaden Accord <dev@jadenaccord.com>"]
 readme = "README.md"
@@ -19,6 +19,7 @@ hex = "0.4.3"
 mpsc = "0.2.0"
 rand = "0.8.5"
 ratatui = "0.23.0"
+stdr = { git = "https://github.com/Jayby18/stdr", version = "0.1.0" }
 thread = "0.1.0"
 
 [dev-dependencies]
