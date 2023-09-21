@@ -2,7 +2,7 @@
 
 [![master](https://github.com/Jayby18/6502-emulator/actions/workflows/rust.yml/badge.svg)](https://github.com/Jayby18/6502-emulator/actions/workflows/rust.yml)
 
-![](./examples/SCR-20230916-jplo.png)
+![](./pictures/SCR-20230916-jplo.png)
 
 ## Roadmap
 

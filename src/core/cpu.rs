@@ -18,6 +18,7 @@ pub struct CPU {
     bus: Bus,      // memory bus
 }
 
+/// Implement CPU's core functionality
 impl CPU {
     pub fn new(bus: Bus) -> Self {
         CPU {
@@ -32,30 +33,33 @@ impl CPU {
         }
     }
 
-    /// Write data to specific address through the bus
-
+    /// Write `u8` value to `u16` address
     pub fn write(&mut self, addr: u16, data: u8) {
         self.bus.write(addr, data);
     }
 
+    /// Read `u8` value from `u16` address
     pub fn read(&mut self, addr: u16) -> u8 {
         self.bus.read(addr)
     }
 
+    /// Write `u16` data from `u16` address (little endian)
     pub fn write_u16(&mut self, addr: u16, data: u16) {
         self.bus.write_u16(addr, data);
     }
 
+    /// Read `u16` data from `u16` address (little endian)
     pub fn read_u16(&mut self, addr: u16) -> u16 {
         self.bus.read_u16(addr)
     }
 
-    // Push to stack
+    /// Push `u8` value to stack
     pub fn push(&mut self, data: u8) {
         self.sp -= 0x01;
         self.write(0x0100 + (self.sp as u16), data);
     }
 
+    /// Push `u16` value to stack
     pub fn push_u16(&mut self, data: u16) {
         let lo = data as u8;
         let hi = (data >> 8) as u8;
@@ -63,13 +67,14 @@ impl CPU {
         self.push(hi);
     }
 
-    // Pop off stack
+    /// Pop `u8` value off stack
     pub fn pop(&mut self) -> u8 {
         let data = self.read(0x0100 + (self.sp as u16));
         self.sp += 1;
         data
     }
 
+    /// Pop `u16` value off stack (little endian)
     pub fn pop_u16(&mut self) -> u16 {
         let lo = self.pop() as u16;
         let hi = self.pop() as u16;
@@ -77,13 +82,13 @@ impl CPU {
     }
 
     // Flags
-    /// Return whether status register has flag
+    /// Return whether status register has specific `Flag`
     pub fn get_flag(&mut self, f: Flags) -> bool {
         // Return value of status register corresponding to flag f
         self.sr & (f as u8) != 0
     }
 
-    /// Set flag according to boolean
+    /// Set `Flag` according to boolean
     pub fn set_flag(&mut self, f: Flags, v: bool) {
         if v {
             // set flags using bitwise OR
@@ -95,14 +100,15 @@ impl CPU {
         }
     }
 
+    /// Set zero (`Z`) and negative (`N`) flags according to `u8` value
     pub fn set_zero_negative_flags(&mut self, value: u8) {
         self.set_flag(Flags::Z, value == 0x00);
         self.set_flag(Flags::N, (value & 0x80) == 0x80);
     }
     
-    // Reset
+    /// Reset CPU
     pub fn reset(&mut self) {
-        self.pc = 0xFFFC;
+        self.pc = RESET_VECTOR;
 
         // Reset all registers (except program counter)
         self.a = 0;
@@ -113,9 +119,9 @@ impl CPU {
         self.opcode = 0;
     }
 
-    // Clock
+    /// Start clock loop
     pub fn clock(&mut self) {
-        // CPU starts from the 16-bit reset vector at 0xFFFC
+        // CPU starts from the 16-bit reset vector at `0xFFFC` (`RESET_VECTOR`)
         if self.pc == RESET_VECTOR {
             let program_start: u16 = self.read_u16(self.pc);
             self.pc = program_start;
@@ -149,7 +155,7 @@ impl CPU {
         }
     }
 
-    // Advance by one step
+    /// Advance CPU by 1 'step' (=/= 1 clock cycle)
     pub fn advance(&mut self) {
         // CPU starts from the 16-bit reset vector at 0xFFFC
         if self.pc == RESET_VECTOR {
@@ -204,7 +210,7 @@ impl CPU {
     }
 }
 
-// Addressing modes
+/// Addressing modes
 #[derive(PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum AddressingMode {
@@ -223,6 +229,7 @@ pub enum AddressingMode {
     ACC,
 }
 
+/// Implement addressing modes
 impl CPU {
     pub fn get_address(&mut self, mode: AddressingMode) -> u16 {
         match mode {
@@ -314,7 +321,7 @@ impl CPU {
     }
 }
 
-// Instructions
+/// Implement instructions
 #[allow(non_snake_case)]
 #[allow(unused)]
 impl CPU {
@@ -835,19 +842,28 @@ impl CPU {
     }
 }
 
-// Flags
+/// Flags (in order from least to most significant bit)
 pub enum Flags {
-    C = 0b0000_0001,    // carry
-    Z = 0b0000_0010,    // zero
-    I = 0b0000_0100,    // disable interrupt
-    D = 0b0000_1000,    // decimal  (unused for now)
-    B = 0b0001_0000,    // break
-    U = 0b0010_0000,    // unused
-    V = 0b0100_0000,    // overflow
-    N = 0b1000_0000,    // negative
+    /// Carry
+    C = 0b0000_0001,
+    /// Zero
+    Z = 0b0000_0010,
+    /// Disable interrupt
+    I = 0b0000_0100,
+    /// Decimal mode (not implemented)
+    D = 0b0000_1000,
+    /// Break
+    B = 0b0001_0000,
+    /// Unused
+    U = 0b0010_0000,
+    /// Overflow
+    V = 0b0100_0000,
+    /// Negative
+    N = 0b1000_0000,
 }
 
 impl Flags {
+    /// Takes a letter as a `&str` and returns binary bitflag value, if flag with that letter exists
     pub fn byte_from_str(string: &str) -> u8 {
         match string {
             "C" => 0b0000_0001,
@@ -863,9 +879,9 @@ impl Flags {
     }
 }
 
-// Testing functions
+/// Debugging/testing functions
 impl CPU {
-    // Write program defined as Vec<u8> to memory
+    /// Write program defined as `Vec<u8>` to memory
     pub fn load_program(&mut self, program: Vec<u8>) {
         // Point to program start address
         self.write_u16(0xFFFC, 0x0600);
@@ -878,7 +894,7 @@ impl CPU {
         }
     }
 
-    // Write program to memory, reset, and start clock
+    /// Write program to memory, reset, and start clock
     pub fn quick_start(&mut self, program: Vec<u8>) {
         self.load_program(program);
         self.reset();
@@ -894,6 +910,7 @@ impl CPU {
     pub fn get_y(&self) -> u8 { self.y }
     pub fn get_opcode(&self) -> u8 { self.opcode }
 
+    /// Return all registers as single `Vec<u16>`
     pub fn get_state(&self) -> Vec<u16> {
         vec![
             self.get_a() as u16,
@@ -906,11 +923,12 @@ impl CPU {
         ]
     }
 
+    /// Get entirety of memory
     pub fn get_memory(&self) -> [u8; 64 * 1024] {
         self.bus.get_ram()
     }
 
-    // Instructor with custom values
+    /// Construct CPU with custom values
     #[allow(clippy::too_many_arguments)]
     pub fn custom(a: u8, x: u8, y: u8, sp: u8, pc: u16, sr: u8, opcode: u8, bus: Bus,) -> Self {
         CPU {
