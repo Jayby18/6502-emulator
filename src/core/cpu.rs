@@ -366,9 +366,6 @@ impl CPU {
         }
     }
 
-    // Regarding all branch instructions:
-    // TODO: currently, underflow will panic. How did original 6502 handle this?
-
     // Branch if carry clear
     fn BCC(&mut self, mode: AddressingMode) {
         if !self.get_flag(Flags::C) {

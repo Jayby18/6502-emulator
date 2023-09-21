@@ -19,7 +19,7 @@
     - [ ] ADC: flagging
     - [ ] SBC
     - [ ] ROR
-    - [ ] Handle overflow in branching instructions
+    - [ ] Handle over/underflow in branching instructions
 - [ ] Test all instructions
 - [ ] Interrupts
     - [x] BRK
