@@ -196,6 +196,26 @@ fn lsr_acc() {
 }
 
 #[test]
+fn lsr_zp0() {
+    let mut cpu: CPU = CPU::new(Bus::new());
+    
+    {
+        cpu.write(0x0012, 0b0010_1000);
+        cpu.quick_start(vec![0x46, 0x12, 0x00]);
+        assert_eq!(cpu.read(0x0012), 0b0001_0100);
+        assert!(!cpu.get_flag(Flags::C));
+    }
+
+    {
+        cpu.write(0x0012, 0b0000_0001);
+        cpu.quick_start(vec![0x46, 0x12, 0x00]);
+        assert_eq!(cpu.read(0x0012), 0x00);
+        assert!(cpu.get_flag(Flags::C));
+        assert!(cpu.get_flag(Flags::Z));
+    }
+}
+
+#[test]
 fn beq_rel_pos() {
     let mut cpu: CPU = CPU::new(Bus::new());
     // LDA 0xA9, AND 0xC0, BEQ -> LDA 0xFF, BRK if no zero flag (A would remain 0xA9)
