@@ -343,6 +343,7 @@ impl CPU {
 
     // Arithmetic shift left
     fn ASL(&mut self, mode: AddressingMode) {
+        println!("ASL");
         if mode == AddressingMode::ACC {
             // Move bit 7 to carry
             self.set_flag(Flags::C, self.a & 0x80 == 0x80);
@@ -358,10 +359,10 @@ impl CPU {
             // Move bit 7 to carry
             self.set_flag(Flags::C, value & 0x80 == 0x80);
 
-            // Shift other bits to the left
-            self.write(addr, value << 1);
-
-            self.set_zero_negative_flags(value << 1);
+            // Shift other bits to the left, and set Z and N flags
+            let result = value << 1;
+            self.write(addr, result);
+            self.set_zero_negative_flags(result);
         }
     }
 
@@ -465,7 +466,6 @@ impl CPU {
     }
 
     // Force interruption
-    // TODO: set flags before or after pushing to stack?
     fn BRK(&mut self, mode: AddressingMode) {
         // Push PC to stack
         self.push_u16(self.pc);
@@ -641,9 +641,29 @@ impl CPU {
         self.set_zero_negative_flags(self.y);
     }
 
-    // TODO: Logical shift right
+    // Logical shift right
     fn LSR(&mut self, mode: AddressingMode) {
-        todo!();
+        println!("LSR");
+        if mode == AddressingMode::ACC {
+            // Move bit 0 to carry
+            self.set_flag(Flags::C, self.a & 0x01 == 0x01);
+
+            // Shift other bits to the right
+            self.a = self.a >> 1;
+
+            self.set_zero_negative_flags(self.a);
+        } else {
+            let addr = self.get_address(mode);
+            let value = self.read(addr);
+
+            // Move bit 0 to carry
+            self.set_flag(Flags::C, value & 0x01 == 0x01);
+
+            // Shift other bits to the right, and set Z and N flags
+            let result = value >> 1;
+            self.write(addr, result);
+            self.set_zero_negative_flags(result);
+        }
     }
 
     // No operation
