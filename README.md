@@ -15,74 +15,24 @@
     - [x] IMP
     - [ ] REL
     - [ ] ACC
-    - [x] all others
-- [ ] Implement all instructions (DOING)
-    - [x] ADC
-    - [x] AND
-    - [ ] ASL
-    - [x] BCC
-    - [x] BCS
-    - [x] BEQ
-    - [x] BIT
-    - [x] BMI
-    - [x] BNE
-    - [x] BPL
-    - [x] BRK
-    - [x] BVC
-    - [x] BVS
-    - [x] CLC
-    - [x] CLD
-    - [x] CLI
-    - [x] CLV
-    - [x] CMP
-    - [x] CPX
-    - [x] CPY
-    - [x] DEC
-    - [x] DEX
-    - [x] DEY
-    - [x] EOR
-    - [x] INC
-    - [x] INX
-    - [x] INY
-    - [x] JMP
-    - [ ] JSR
-    - [x] LDA
-    - [x] LDX
-    - [x] LDY
-    - [ ] LSR
-    - [x] NOP
-    - [x] ORA
-    - [x] PHA
-    - [x] PHP
-    - [x] PLA
-    - [x] PLP
-    - [ ] ROL
+- [ ] Implement all instructions
+    - [ ] ADC: flagging
+    - [ ] SBC
     - [ ] ROR
-    - [x] RTI
-    - [x] RTS
-    - [x] SBC
-    - [x] SEC
-    - [x] SED
-    - [x] SEI
-    - [x] STA
-    - [x] STX
-    - [x] STY
-    - [x] TAX
-    - [x] TAY
-    - [x] TSX
-    - [x] TXA
-    - [x] TXS
-    - [x] TYA
-    - [x] XXX
+    - [ ] Handle overflow in branching instructions
 - [ ] Test all instructions
+- [ ] Interrupts
+    - [x] BRK
+    - [ ] IRQ
+    - [ ] NMI
+    - [ ] How to call them?
 - [ ] Test all opcodes
 - [ ] Count cycles
-- [ ] Use `bitflags` crate?
 
 ### Frontend
 
-- [ ] Create simple CLI for basic functionality
 - [ ] Read from ROM files
+    - [x] Read plaintext
 - [ ] TUI (DOING)
     - [x] Registers
     - [x] Flags
@@ -91,7 +41,7 @@
         - [ ] Scroll memory
         - [ ] Edit memory
         - [ ] View stack
-    - [ ] Port to `ratatui`
+    - [x] Port to `ratatui`
     - [ ] Display (for NES PPU)
     - [ ] Menus (to emulation mode)
     - [ ] Theming
