@@ -4,7 +4,9 @@
 
 ![](./examples/SCR-20230916-jplo.png)
 
-## To do
+## Roadmap
+
+- [ ] Come up with better Crate name
 
 ### Backend
 
@@ -75,6 +77,7 @@
 - [ ] Test all instructions
 - [ ] Test all opcodes
 - [ ] Count cycles
+- [ ] Use `bitflags` crate?
 
 ### Frontend
 
