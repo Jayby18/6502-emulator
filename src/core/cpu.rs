@@ -698,9 +698,49 @@ impl CPU {
         self.sr = self.pop();
     }
 
-    // TODO: Rotate left
+    // Rotate left
+    // Shift left, while setting bit 0 equal to carry and setting new carry equal to old bit 7
     fn ROL(&mut self, mode: AddressingMode) {
-        todo!();
+        if mode == AddressingMode::ACC {
+            // Store old bit 7
+            let bit_seven: bool = self.a & 0x80 == 0x80;
+
+            // Shift bits left
+            let mut result = self.a << 1;
+
+            // Set bit 0 equal to old carry
+            result |= self.sr & 0x01;
+
+            // Load result to accumulator
+            self.a = result;
+
+            // Set new carry to old bit 7
+            self.set_flag(Flags::C, bit_seven);
+
+            // Set other flags
+            self.set_zero_negative_flags(self.a);
+        } else {
+            let addr = self.get_address(mode);
+            let value = self.read(addr);
+
+            // Store old bit 7
+            let bit_seven: bool = value & 0x80 == 0x80;
+
+            // Shift bits left
+            let mut result = value << 1;
+
+            // Set bit 0 equal to old carry
+            result |= self.sr & 0x01;
+
+            // Write result
+            self.write(addr, result);
+
+            // Set new carry to old bit 7
+            self.set_flag(Flags::C, bit_seven);
+
+            // Set other flags
+            self.set_zero_negative_flags(result);
+        }
     }
 
     // TODO: Rotate right

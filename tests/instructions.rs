@@ -216,6 +216,28 @@ fn lsr_zp0() {
 }
 
 #[test]
+fn rol_acc() {
+    let mut cpu: CPU = CPU::new(Bus::new());
+
+    {
+        cpu.quick_start(vec![0xA9, 0b1000_0010, 0x2A, 0x00]);
+        assert_eq!(cpu.get_a(), 0b0000_0100);
+        assert!(cpu.get_flag(Flags::C));
+    }
+
+    {
+        cpu.quick_start(vec![0xA9, 0b0010_0010, 0x38, 0x2A, 0x00]);
+        assert_eq!(cpu.get_a(), 0b0100_0101);
+        assert!(!cpu.get_flag(Flags::C));
+    }
+}
+
+#[test]
+fn rol_zp0() {
+    // TODO: test ROL(ZP0) with various starting conditions
+}
+
+#[test]
 fn beq_rel_pos() {
     let mut cpu: CPU = CPU::new(Bus::new());
     // LDA 0xA9, AND 0xC0, BEQ -> LDA 0xFF, BRK if no zero flag (A would remain 0xA9)
