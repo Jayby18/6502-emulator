@@ -341,26 +341,27 @@ impl CPU {
         self.set_zero_negative_flags(self.a);
     }
 
-    // TODO: arithmetic shift left
+    // Arithmetic shift left
     fn ASL(&mut self, mode: AddressingMode) {
         if mode == AddressingMode::ACC {
+            // Move bit 7 to carry
             self.set_flag(Flags::C, self.a & 0x80 == 0x80);
 
-            let shift: u8 = self.a << 1;
-            self.a = shift;
+            // Shift other bits to the left
+            self.a = self.a << 1;
 
-            self.set_flag(Flags::N, shift & 0x80 == 0x80);
-            self.set_flag(Flags::Z, self.a == 0x00);
+            self.set_zero_negative_flags(self.a);
         } else {
             let addr: u16 = self.get_address(mode);
             let value: u8 = self.read(addr);
             
+            // Move bit 7 to carry
             self.set_flag(Flags::C, value & 0x80 == 0x80);
 
-            let shift: u8 = value << 1;
-            self.write(addr, shift);
+            // Shift other bits to the left
+            self.write(addr, value << 1);
 
-            self.set_flag(Flags::N, shift & 0x80 == 0x80);
+            self.set_zero_negative_flags(value << 1);
         }
     }
 

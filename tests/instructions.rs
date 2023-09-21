@@ -135,7 +135,6 @@ fn asl_acc() {
         cpu.quick_start(vec![0xA9, 0b1010_0000, 0x0A, 0x00]);
         assert_eq!(cpu.get_a(), 0b0100_0000);
         assert!(cpu.get_flag(Flags::C));
-        // println!("A: {}", cpu.get_a());
     }
 
     {
@@ -152,6 +151,26 @@ fn asl_acc() {
         assert!(cpu.get_flag(Flags::N));
         assert!(!cpu.get_flag(Flags::Z));
         assert!(!cpu.get_flag(Flags::C));
+    }
+}
+
+#[test]
+fn asl_zp0() {
+    let mut cpu: CPU = CPU::new(Bus::new());
+    
+    {
+        cpu.write(0x0012, 0b0010_1000);
+        cpu.quick_start(vec![0x06, 0x12, 0x00]);
+        assert_eq!(cpu.read(0x0012), 0b0101_0000);
+        assert!(!cpu.get_flag(Flags::C));
+    }
+
+    {
+        cpu.write(0x0012, 0b1000_0000);
+        cpu.quick_start(vec![0x06, 0x12, 0x00]);
+        assert_eq!(cpu.read(0x0012), 0x00);
+        assert!(cpu.get_flag(Flags::C));
+        assert!(cpu.get_flag(Flags::Z));
     }
 }
 
