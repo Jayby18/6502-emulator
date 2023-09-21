@@ -1,10 +1,11 @@
-use crate::bus::Bus;
+use crate::core::bus::Bus;
 
 #[allow(dead_code)]
 const NMI_VECTOR: u16 = 0xFFFA;
 const RESET_VECTOR: u16 = 0xFFFC;
 const IRQ_VECTOR: u16 = 0xFFFE;
 
+#[allow(clippy::upper_case_acronyms)]
 pub struct CPU {
     // byte: u8, word: u16
     a: u8,          // accumulator
@@ -23,8 +24,7 @@ impl CPU {
             a: 0x00,
             x: 0x00,
             y: 0x00,
-            // sp: 0xFF,
-            sp: 0x00,
+            sp: 0xFF,
             pc: 0x0000,
             sr: 0x00,
             opcode: 0x00,
@@ -85,13 +85,12 @@ impl CPU {
 
     /// Set flag according to boolean
     pub fn set_flag(&mut self, f: Flags, v: bool) {
-        // TODO: what is v again?
         if v {
             // set flags using bitwise OR
             // if current flag is 0110 and you pass 0001, it becomes 0111
             self.sr |= f as u8;
         } else {
-            // set flags using ...
+            // set flags using XOR
             self.sr &= !(f as u8);
         }
     }
@@ -103,31 +102,27 @@ impl CPU {
     
     // Reset
     pub fn reset(&mut self) {
-        // println!("\nResetting. (PC: {:02X})", self.pc);
         self.pc = 0xFFFC;
 
         // Reset all registers (except program counter)
         self.a = 0;
         self.x = 0;
         self.y = 0;
-        self.sp = 0;
+        self.sp = 0xFF;
         self.sr = 0;
         self.opcode = 0;
     }
 
     // Clock
     pub fn clock(&mut self) {
+        // CPU starts from the 16-bit reset vector at 0xFFFC
         if self.pc == RESET_VECTOR {
             let program_start: u16 = self.read_u16(self.pc);
-            // println!("Starting program at: {}", program_start);
             self.pc = program_start;
         }
 
         loop {
             self.opcode = self.read(self.pc);
-            // println!("\nNew clock cycle.");
-            // println!("PC: {}", self.pc);
-            // println!("OP: {}", opcode);
             self.pc += 1;
 
             if self.opcode == 0x00 { break }
@@ -162,9 +157,6 @@ impl CPU {
             self.pc = program_start;
         } else {
             self.opcode = self.read(self.pc);
-            // println!("\n New clock cycle.");
-            // println!("PC: {}", self.pc);
-            // println!("OP: {}", opcode);
             self.pc += 1;
 
             if self.opcode == 0x00 {
@@ -214,6 +206,7 @@ impl CPU {
 
 // Addressing modes
 #[derive(PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum AddressingMode {
     IMM,
     IMP,
@@ -834,11 +827,6 @@ impl CPU {
         self.clock();
     }
 
-    // Set A register
-    pub fn set_a(&mut self, value: u8) {
-        self.a = value;
-    }
-
     // Get registers
     pub fn get_pc(&self) -> u16 { self.pc }
     pub fn get_sp(&self) -> u8 { self.sp }
@@ -847,11 +835,6 @@ impl CPU {
     pub fn get_x(&self) -> u8 { self.x }
     pub fn get_y(&self) -> u8 { self.y }
     pub fn get_opcode(&self) -> u8 { self.opcode }
-
-    // Return status register (flags) as u8
-    pub fn get_status(&self) -> u8 {
-        self.sr
-    }
 
     pub fn get_state(&self) -> Vec<u16> {
         vec![

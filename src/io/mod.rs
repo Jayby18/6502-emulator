@@ -7,7 +7,6 @@ use std::{
     fs::File,
     path::PathBuf,
 };
-use hex;
 
 // TODO: read binary ROM files (use io::Seek?)
 // TODO: read plaintext ROM files (with and without additional memory writes)

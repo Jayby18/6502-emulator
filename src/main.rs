@@ -15,16 +15,14 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use dirs;
 
-mod cpu;
-mod bus;
-
-use cpu::CPU;
-use cpu::Flags;
-use bus::Bus;
-
+mod core;
 mod io;
+
+use core::{
+    cpu::{CPU, Flags},
+    bus::Bus,
+};
 
 enum Event<I> {
     Input(I),

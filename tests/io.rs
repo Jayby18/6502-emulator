@@ -1,9 +1,6 @@
+use std::path::PathBuf;
+
 use mos_6502_emulator::io;
-use dirs;
-use std::path::{
-    Path,
-    PathBuf,
-};
 
 #[test]
 fn read_existing() {

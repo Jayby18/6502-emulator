@@ -1,3 +1,2 @@
-pub mod cpu;
-pub mod bus;
+pub mod core;
 pub mod io;

@@ -111,6 +111,7 @@ See [NESdev Wiki](https://www.nesdev.org/wiki/Nesdev_Wiki) for more.
 - 0x2000-0x2007: PPU registers
 - 0x2008-0x3FFF: mirrors of PPU registers
 - 0x4000-0x4017: APU and I/O registers
+    - 0x4016 and 0x4017 read controller 1 and 2 (respectively), bit by bit
 - 0x4018-0x401F: normally disabled (APU and I/O functionality)
 - 0x4020-0xFFFF: cartridge space (PRG ROM/RAM and mapper registers, incl. reset and IRQ vector)
 
