@@ -80,12 +80,33 @@ fn adc_imm() {
         assert!(!cpu.get_flag(Flags::V));
     }
 
-    // TODO: Overflow -> no overflow
+    // No overflow -> overflow
     {
-        cpu.quick_start(vec![]);
+        // LDA 0x7F (127), ADC 0x01 (1). Should wrap around to -128, so overflow.
+        cpu.quick_start(vec![0xA9, 0x7F, 0x69, 0x01, 0x00]);
+        assert_eq!(cpu.get_a(), 0x80);
+        assert!(cpu.get_flag(Flags::V));
+        assert!(!cpu.get_flag(Flags::C));
+    }
+}
+
+#[test]
+fn sbc_imm() {
+    let mut cpu: CPU = CPU::new(Bus::new());
+
+    // No carry -> carry
+    {
+        // LDA 0x
     }
 
-    // TODO: No overflow -> overflow
+    // No overflow -> overflow
+    {
+        // LDA 0x7F (127), SBC (0xFF) (-1). Should wrap to -128, so overflow.
+        cpu.quick_start(vec![0xA9, 0x7F, 0xE9, 0xFF, 0x00]);
+        assert_eq!(cpu.get_a(), 0x80);
+        assert!(cpu.get_flag(Flags::V));
+        assert!(cpu.get_flag(Flags::C));
+    }
 }
 
 #[test]

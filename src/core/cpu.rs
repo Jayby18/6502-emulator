@@ -7,7 +7,6 @@ const IRQ_VECTOR: u16 = 0xFFFE;
 
 #[allow(clippy::upper_case_acronyms)]
 pub struct CPU {
-    // byte: u8, word: u16
     a: u8,          // accumulator
     x: u8,          // X register
     y: u8,          // Y register
@@ -15,7 +14,7 @@ pub struct CPU {
     pc: u16,        // program counter
     sr: u8,         // status register
     opcode: u8,     // current opcode
-    bus: Bus,      // memory bus
+    bus: Bus,       // memory bus
 }
 
 /// Implement CPU's core functionality
@@ -329,12 +328,18 @@ impl CPU {
     fn ADC(&mut self, mode: AddressingMode) {
         let addr: u16 = self.get_address(mode);
         let operand: u8 = self.read(addr);
+
+        let result_u16: u16 = self.a as u16 + operand as u16 + (self.sr & 0x01) as u16;
+        let result_u8: u8 = result_u16 as u8;
+
+        // Set carry if unsigned overflow occurs
+        self.set_flag(Flags::C, result_u16 > 0xFF);
         
-        let mut sum: u16 = self.a as u16 + operand as u16 + (self.sr & 0x01) as u16;
-        self.set_flag(Flags::C, sum > 0xFF);
-        self.a = sum as u8;
-        
-        // TODO: set V if sign bit is incorrect
+        // Set V if signed overflow occurs
+        self.set_flag(Flags::V, self.a & 0x80 == operand & 0x80 && self.a & 0x80 != result_u8 & 0x80);
+
+        // Set accumulator equal to result
+        self.a = result_u8;
 
         // set zero and negative flags
         self.set_zero_negative_flags(self.a);
@@ -802,9 +807,25 @@ impl CPU {
         self.pc = self.pop_u16();
     }
 
-    // TODO: Subtract with carry
+    // Subtract with carry
     fn SBC(&mut self, mode: AddressingMode) {
-        todo!();
+        let addr = self.get_address(mode);
+        let operand = self.read(addr);
+
+        let result_i16: i16 = self.a as i16 - operand as i16 - (self.sr & 0x01) as i16;
+        let result_u8: u8 = result_i16 as u8;
+
+        // TODO: clear C if overflow in bit 7 (???)
+        self.set_flag(Flags::C, result_i16 < 0xFF);
+
+        // Set V if signed overflow occurs
+        self.set_flag(Flags::V, self.a & 0x80 != operand & 0x80 && operand & 0x80 == result_u8 & 0x80);
+
+        // self.a -= operand + (1 - (self.sr & 0x01));
+        self.a = result_u8;
+
+        // Set zero and negative flags
+        self.set_zero_negative_flags(self.a);
     }
 
     // Set carry flag to 1

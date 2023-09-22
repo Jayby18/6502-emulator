@@ -16,9 +16,7 @@
     - [ ] REL
     - [ ] ACC
 - [ ] Implement all instructions
-    - [ ] ADC: flagging
     - [ ] SBC
-    - [ ] ROR
     - [ ] Handle over/underflow in branching instructions
 - [ ] Test all instructions
 - [ ] Interrupts
