@@ -10,11 +10,10 @@
 
 ### Backend
 
+#### Core
+
 - [x] Implement all addressing modes
-- [ ] Test all addressing modes
-    - [x] IMP
-    - [ ] REL
-    - [ ] ACC
+- [x] Test all addressing modes
 - [ ] Implement all instructions
     - [ ] SBC
     - [ ] Handle over/underflow in branching instructions
@@ -23,15 +22,26 @@
     - [x] BRK
     - [ ] IRQ
     - [ ] NMI
-    - [ ] How to call them?
 - [ ] Test all opcodes
 - [ ] Count cycles
 
+#### IO
+
+- [ ] Read plaintext files
+- [ ] Read ROM files
+    - [ ] Custom, minimal format
+    - [ ] iNES
+    - [ ] NES2.0
+
+#### NES
+
+- [ ] PPU
+- [ ] APU
+- etc.
+
 ### Frontend
 
-- [ ] Read from ROM files
-    - [x] Read plaintext
-- [ ] TUI (DOING)
+- [ ] TUI
     - [x] Registers
     - [x] Flags
     - [ ] Memory
@@ -40,10 +50,10 @@
         - [ ] Edit memory
         - [ ] View stack
     - [x] Port to `ratatui`
-    - [ ] Display (for NES PPU)
-    - [ ] Menus (to emulation mode)
+    - [ ] Display
+    - [ ] Menus
     - [ ] Theming
-        - FIXME: highlighted table row only works in terminal dark mode
+- [ ] API
 
 ## Specific system emulation
 
