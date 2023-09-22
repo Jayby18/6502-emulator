@@ -238,6 +238,28 @@ fn rol_zp0() {
 }
 
 #[test]
+fn ror_acc() {
+    let mut cpu: CPU = CPU::new(Bus::new());
+
+    {   // No carry -> carry
+        cpu.quick_start(vec![0xA9, 0b0100_0001, 0x6A, 0x00]);
+        assert_eq!(cpu.get_a(), 0b0010_0000);
+        assert!(cpu.get_flag(Flags::C));
+    }
+
+    {   // Carry -> no carry
+        cpu.quick_start(vec![0xA9, 0b0100_0100, 0x38, 0x6A, 0x00]);
+        assert_eq!(cpu.get_a(), 0b1010_0010);
+        assert!(!cpu.get_flag(Flags::C));
+    }
+}
+
+#[test]
+fn ror_zp0() {
+    // TODO: test ROR(ZP0) with various starting conditions
+}
+
+#[test]
 fn beq_rel_pos() {
     let mut cpu: CPU = CPU::new(Bus::new());
     // LDA 0xA9, AND 0xC0, BEQ -> LDA 0xFF, BRK if no zero flag (A would remain 0xA9)

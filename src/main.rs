@@ -204,27 +204,6 @@ fn main() -> Result<(), std::io::Error> {
                 .column_spacing(1);
             f.render_widget(stack_list, right_layout[0]);
 
-            // TODO: proper implementation
-            // For now, I just write to memory starting at address 0x3000.
-            // In NES, there are 32 horizontal and 30 vertical tiles, each 8x8 pixels.
-            // Each tile gets a memory address (starting left top), and the bits correspond to the pixels.
-            // Here, I'll start with 8 by 8 virtual pixels.
-
-            let v_pixels: Vec<u8> = vec![
-                0, 0, 1, 1, 1, 1, 0, 0,
-                0, 0, 0, 1, 1, 0, 0, 0,
-                0, 0, 1, 0, 0, 1, 0, 0,
-                0, 1, 0, 0, 0, 0, 1, 1,
-                0, 1, 1, 1, 1, 1, 1, 1,
-                0, 1, 1, 1, 1, 1, 1, 1,
-                0, 0, 1, 1, 1, 1, 1, 0,
-                0, 0, 0, 1, 1, 0, 0, 0,
-            ];
-
-            let v_pixel_array: Vec<Vec<u8>> = v_pixels.chunks(8).map(|chunk| chunk.to_vec()).collect();
-            
-            // TODO: Display (PPU)
-
             // Help
             let help = Paragraph::new("<space>: advance to next cycle\n<enter>: start clock\nr: reset CPU\nq: quit application")
                 .block(

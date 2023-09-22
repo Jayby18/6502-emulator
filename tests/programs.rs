@@ -6,8 +6,6 @@
 //     bus::Bus,
 // };
 
-// TODO: complete table of opcodes before testing these
-
 // Sum 3 and 5, write result to 0x0202
 // A2 03 8E 00 02 A2 05 8E 01 02 A9 00 6D 00 02 6D 01 02 8D 02 02 00
 // #[test]

@@ -747,9 +747,48 @@ impl CPU {
         }
     }
 
-    // TODO: Rotate right
+    // Rotate right
     fn ROR(&mut self, mode: AddressingMode) {
-        todo!();
+        if mode == AddressingMode::ACC {
+            // Store old bit 0
+            let bit_zero: bool = self.a & 0x01 == 0x01;
+
+            // Shift bits to the right
+            let mut result = self.a >> 1;
+
+            // Set bit 7 equal to old carry
+            result |= (self.sr & 0x01) << 7;
+
+            // Load result to accumulator
+            self.a = result;
+
+            // Set new carry to old bit 0
+            self.set_flag(Flags::C, bit_zero);
+
+            // Set other flags
+            self.set_zero_negative_flags(self.a);
+        } else {
+            let addr = self.get_address(mode);
+            let value = self.read(addr);
+
+            // Store old bit 0
+            let bit_zero: bool = value & 0x01 == 0x01;
+
+            // Shift bits to the right
+            let mut result = value << 1;
+
+            // Set bit 7 equal to old carry
+            result |= (self.sr & 0x01) << 7;
+
+            // Write result
+            self.write(addr, result);
+
+            // Set new carry to old bit 0
+            self.set_flag(Flags::C, bit_zero);
+
+            // Set other flags
+            self.set_zero_negative_flags(result);
+        }
     }
 
     // Return from interrupt
