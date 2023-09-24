@@ -1,16 +1,16 @@
 # 6502 emulator
 
+[![Crates.io](https://img.shields.io/crates/v/emulatorr?logo=rust)](https://crates.io/crates/emulatorr)
+[![License](https://img.shields.io/crates/l/emulatorr)](./LICENSE)
+![build](https://img.shields.io/github/actions/workflow/status/Jayby18/6502-emulator/cargo-build.yml)
+![test](https://img.shield.io/github/actions/workflow/status/Jayby18/6502-emulator/cargo-test.yml)
+[![docs](https://img.shields.io/docsrs/emulatorr?logo=rust)](https://docs.rs/crate/emulatorr/)
+
 > Please note that this is just a project for me to learn Rust and how the 6502 works. You can use this software, as-is. Feel free to submit issues and/or contribute, but don't expect too much.
-
-[![master](https://github.com/Jayby18/6502-emulator/actions/workflows/rust.yml/badge.svg)](https://github.com/Jayby18/6502-emulator/actions/workflows/rust.yml)
-
-[![GitHub license](https://badgen.net/github/license/Jayby18/6502-emulator)](https://github.com/Jayby18/6502-emulator/master/LICENSE)
 
 ![](./pictures/SCR-20230916-jplo.png)
 
 ## Roadmap
-
-- [ ] Come up with better Crate name
 
 ### Backend
 
