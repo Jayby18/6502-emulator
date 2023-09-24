@@ -734,8 +734,9 @@ dependencies = [
 
 [[package]]
 name = "stdr"
-version = "0.1.0"
-source = "git+https://github.com/Jayby18/stdr#b2afd7547d1f2b8b73c83bb66808e629c5491679"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58a76bc0211911e53fd39fab2e658aec0560bc24443acb7731640e69b9003657"
 dependencies = [
  "crossterm",
  "mpsc",

@@ -23,5 +23,5 @@ hex = "0.4.3"
 mpsc = "0.2.0"
 rand = "0.8.5"
 ratatui = "0.23.0"
-stdr = { git = "https://github.com/Jayby18/stdr", version = "0.1.0" }
+stdr = "0.1.1"
 thread = "0.1.0"
