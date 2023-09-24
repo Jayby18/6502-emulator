@@ -10,6 +10,7 @@ use crossterm::{
 
 mod core;
 mod io;
+mod nes;
 
 use core::{
     cpu::{CPU, Flags},
@@ -27,9 +28,17 @@ fn main() -> Result<(), std::io::Error> {
     let bus: Bus = Bus::new();
     let mut cpu: CPU = CPU::new(bus);
 
-    cpu.write(0x00F1, 0x27);
-    let program = io::load_bytes(&dirs::home_dir().unwrap().join("stack.txt"))?;
-    cpu.load_program(program);
+    // Get CLI arguments
+    let args: Vec<String> = std::env::args().collect();
+
+    nes::load_nes_rom(&mut cpu, &dirs::home_dir().unwrap().join(args[1].clone()))?;
+    cpu.reset();
+
+    // cpu.write(0x00F1, 0x27);
+    // let program = io::load_bytes(&dirs::home_dir().unwrap().join("stack.txt"))?;
+    // cpu.load_program(program);
+    // cpu.reset();
+
     cpu.reset();
 
     // Set up terminal

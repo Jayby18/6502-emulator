@@ -8,10 +8,11 @@ use std::{
     path::PathBuf,
 };
 
-// TODO: read binary ROM files (use io::Seek?)
+// TODO: read binary ROM files
 // TODO: read plaintext ROM files (with and without additional memory writes)
 
 // Read hexadecimal bytes from plaintext file
+#[allow(dead_code)]
 pub fn load_bytes(path: &PathBuf) -> io::Result<Vec<u8>> {
     let f = File::open(path)?;
     let reader = BufReader::new(f);
@@ -31,3 +32,10 @@ pub fn load_bytes(path: &PathBuf) -> io::Result<Vec<u8>> {
         )
 } 
 
+pub fn load_rom(path: &PathBuf) -> io::Result<Vec<u8>> {
+    let mut f = File::open(path)?;
+    let mut buffer: Vec<u8> = Vec::new();
+    f.read_to_end(&mut buffer)?;
+
+    Ok(buffer)
+}
