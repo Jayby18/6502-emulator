@@ -1,4 +1,4 @@
-name: Rust-master
+name: build
 
 on:
   push:
