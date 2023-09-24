@@ -8,6 +8,10 @@ repository = "https://github.com/Jayby18/6502-emulator"
 keywords = ["tui", "emulator"]
 categories = ["emulator"]
 exclude = ["pictures/"]
+license = "MIT"
+description = "A 6502 emulator written in Rust, with TUI."
+# docs = "" # optional. otherwise, will automatically link to docs.rs page
+# homepage = "https://dev.jadenaccord.com/projects/emulatorr" # TODO: uncomment when the page exists
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

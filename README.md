@@ -1,6 +1,10 @@
 # 6502 emulator
 
+> Please note that this is just a project for me to learn Rust and how the 6502 works. You can use this software, as-is. Feel free to submit issues and/or contribute, but don't expect too much.
+
 [![master](https://github.com/Jayby18/6502-emulator/actions/workflows/rust.yml/badge.svg)](https://github.com/Jayby18/6502-emulator/actions/workflows/rust.yml)
+
+[![GitHub license](https://badgen.net/github/license/Jayby18/6502-emulator)](https://github.com/Jayby18/6502-emulator/master/LICENSE)
 
 ![](./pictures/SCR-20230916-jplo.png)
 
