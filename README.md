@@ -2,8 +2,8 @@
 
 [![Crates.io](https://img.shields.io/crates/v/emulatorr?logo=rust)](https://crates.io/crates/emulatorr)
 [![License](https://img.shields.io/crates/l/emulatorr)](./LICENSE)
-![build](https://img.shields.io/github/actions/workflow/status/Jayby18/6502-emulator/cargo-build.yml)
-![test](https://img.shield.io/github/actions/workflow/status/Jayby18/6502-emulator/cargo-test.yml)
+[![build](https://github.com/Jayby18/6502-emulator/actions/workflows/cargo-build.yml/badge.svg)](https://github.com/Jayby18/6502-emulator/actions/workflows/cargo-build.yml)
+[![test](https://github.com/Jayby18/6502-emulator/actions/workflows/cargo-test.yml/badge.svg)](https://github.com/Jayby18/6502-emulator/actions/workflows/cargo-test.yml)
 [![docs](https://img.shields.io/docsrs/emulatorr?logo=rust)](https://docs.rs/crate/emulatorr/)
 
 > Please note that this is just a project for me to learn Rust and how the 6502 works. You can use this software, as-is. Feel free to submit issues and/or contribute, but don't expect too much.
