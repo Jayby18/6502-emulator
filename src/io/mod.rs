@@ -11,7 +11,9 @@ use std::{
 // TODO: read binary ROM files
 // TODO: read plaintext ROM files (with and without additional memory writes)
 
-// Read hexadecimal bytes from plaintext file
+/// Read plaintext file, converting to bytes (formatted as "FF")
+///
+/// Returns `Ok(Vec<u8>)`, or `std::io::error::Error` if there is an error reading the file.
 #[allow(dead_code)]
 pub fn load_bytes(path: &PathBuf) -> io::Result<Vec<u8>> {
     let f = File::open(path)?;
@@ -32,6 +34,9 @@ pub fn load_bytes(path: &PathBuf) -> io::Result<Vec<u8>> {
         )
 } 
 
+/// Read raw bytes from ROM file
+///
+/// Returns `Ok(Vec<u8>)`, or `std::io::error::Error` if there is an error reading the file.
 pub fn load_rom(path: &PathBuf) -> io::Result<Vec<u8>> {
     let mut f = File::open(path)?;
     let mut buffer: Vec<u8> = Vec::new();
