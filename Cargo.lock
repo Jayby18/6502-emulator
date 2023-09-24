@@ -204,6 +204,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
 
 [[package]]
+name = "emulatorr"
+version = "0.1.0-alpha"
+dependencies = [
+ "color-eyre",
+ "crossterm",
+ "dirs",
+ "hex",
+ "mpsc",
+ "rand",
+ "ratatui",
+ "stdr",
+ "thread",
+]
+
+[[package]]
 name = "event-listener"
 version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -417,21 +432,6 @@ dependencies = [
  "log",
  "wasi",
  "windows-sys",
-]
-
-[[package]]
-name = "mos-6502-emulator"
-version = "0.1.0-alpha"
-dependencies = [
- "color-eyre",
- "crossterm",
- "dirs",
- "hex",
- "mpsc",
- "rand",
- "ratatui",
- "stdr",
- "thread",
 ]
 
 [[package]]

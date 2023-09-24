@@ -1,6 +1,6 @@
 #![allow(clippy::disallowed_names)]
 
-use mos_6502_emulator::core::{
+use emulatorr::core::{
     cpu::{
         CPU,
         AddressingMode,

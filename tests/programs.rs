@@ -1,4 +1,4 @@
-// use mos_6502_emulator::{
+// use emulatorr::{
 //     cpu::{
 //         CPU,
 //         AddressingMode,
