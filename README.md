@@ -28,6 +28,7 @@
     - [ ] NMI
 - [ ] Test all opcodes
 - [ ] Count cycles
+- [ ] Clock speed
 
 #### IO
 

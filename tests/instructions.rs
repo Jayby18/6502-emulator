@@ -90,6 +90,8 @@ fn adc_imm() {
     }
 }
 
+// TODO: test SBC with overflow, carry, and underflow conditions
+
 #[test]
 fn sbc_imm() {
     let mut cpu: CPU = CPU::new(Bus::new());
@@ -106,6 +108,20 @@ fn sbc_imm() {
         assert_eq!(cpu.get_a(), 0x80);
         assert!(cpu.get_flag(Flags::V));
         assert!(cpu.get_flag(Flags::C));
+    }
+}
+
+#[test]
+fn sbc_zpx() {
+    let mut cpu: CPU = CPU::new(Bus::new());
+
+    // LDA(IMM), LDX(IMM), SBC(ZPX)
+
+    {
+        cpu.write(0x00F1, 0x03);
+        cpu.quick_start(vec![0xA9, 0x27, 0xA2, 0x10, 0xF5, 0xE1, 0x00]);
+
+        assert_eq!(cpu.get_a(), 0x24);
     }
 }
 
