@@ -543,7 +543,6 @@ impl CPU {
         let result = self.a - value;
         self.set_zero_negative_flags(result);
         self.set_flag(Flags::C, self.a >= value);
-        self.a = result;
     }
 
     // Compare X register to memory value
@@ -553,7 +552,6 @@ impl CPU {
         let result = self.x - value;
         self.set_zero_negative_flags(result);
         self.set_flag(Flags::C, self.x >= value);
-        self.x = result;
     }
 
     // Compare Y register to memory value
@@ -563,7 +561,6 @@ impl CPU {
         let result = self.y - value;
         self.set_zero_negative_flags(result);
         self.set_flag(Flags::C, self.y >= value);
-        self.y = result;
     }
 
     // Decrement memory
