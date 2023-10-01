@@ -6,6 +6,7 @@ const RESET_VECTOR: u16 = 0xFFFC;
 const IRQ_VECTOR: u16 = 0xFFFE;
 
 #[allow(clippy::upper_case_acronyms)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct CPU {
     a: u8,          // accumulator
     x: u8,          // X register
@@ -206,6 +207,22 @@ impl CPU {
     #[allow(unused)]
     fn nmi(&mut self) {
         todo!();
+    }
+}
+
+/// Implement `Default` for `CPU`
+impl Default for CPU {
+    fn default(bus: Bus) -> Self {
+        CPU {
+            a: 0x00,
+            x: 0x00,
+            y: 0x00,
+            sp: 0xFF,
+            pc: 0x0000,
+            sr: 0x00,
+            opcode: 0x00,
+            bus,
+        }
     }
 }
 
@@ -985,20 +1002,5 @@ impl CPU {
     /// Get entirety of memory
     pub fn get_memory(&self) -> [u8; 64 * 1024] {
         self.bus.get_ram()
-    }
-
-    /// Construct CPU with custom values
-    #[allow(clippy::too_many_arguments, unused)]
-    pub fn custom(a: u8, x: u8, y: u8, sp: u8, pc: u16, sr: u8, opcode: u8, bus: Bus,) -> Self {
-        CPU {
-            a,
-            x,
-            y,
-            sp,
-            pc,
-            sr,
-            opcode,
-            bus,
-        }
     }
 }

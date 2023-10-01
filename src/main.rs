@@ -22,7 +22,6 @@ enum Event<I> {
     Tick,
 }
 
-#[allow(unused_variables)]
 fn main() -> Result<(), std::io::Error> {
     // Init bus and CPU
     let bus: Bus = Bus::new();
@@ -189,12 +188,12 @@ fn main() -> Result<(), std::io::Error> {
                     .iter()
                     .map(|i| {
                         if (indices[*i as usize]) as u16 == cpu_state[3] {
-                            Row::new(vec![format!("0x{:04X}", 0x0100 + *i as u16), format!("0x{0:2X}", stack[*i as usize]).to_string()])
+                            Row::new(vec![format!("0x{:04X}", 0x0100 + *i as u16), format!("0x{:02X}", stack[*i as usize]).to_string()])
                                 .style(Style::default().bg(Color::White).fg(Color::Black))
                         } else if stack[*i as usize] == 0x00 {
-                            Row::new(vec![format!("0x{0:4X}", 0x0100 + *i as u16), "----".to_string()])
+                            Row::new(vec![format!("0x{:04X}", 0x0100 + *i as u16), "----".to_string()])
                         } else {
-                            Row::new(vec![format!("0x{0:4X}", 0x0100 + *i as u16), format!("0x{0:2X}", stack[*i as usize]).to_string()])
+                            Row::new(vec![format!("0x{:04X}", 0x0100 + *i as u16), format!("0x{:02X}", stack[*i as usize]).to_string()])
                         }
                     })
                 )

@@ -1,3 +1,4 @@
+#[derive(Clone, Debug, PartialEq)]
 pub struct Bus {
     ram: [u8; 64 * 1024],
 }
@@ -42,6 +43,8 @@ impl Bus {
 
 impl Default for Bus {
     fn default() -> Self {
-        Self::new()
+        Bus {
+            ram: [0; 64 * 1024],
+        }
     }
 }
