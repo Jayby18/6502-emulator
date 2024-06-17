@@ -1,4 +1,4 @@
-# 6502 emulator
+# emulatorr
 
 [![Crates.io](https://img.shields.io/crates/v/emulatorr?logo=rust)](https://crates.io/crates/emulatorr)
 [![License](https://img.shields.io/crates/l/emulatorr)](./LICENSE)
